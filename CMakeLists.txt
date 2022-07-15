@@ -75,18 +75,18 @@ target_link_libraries(${PROJECT_NAME} PUBLIC log4cpp pthread)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(InstallingConfigs)
 include(InstallingGeneral)
-#include(Packing)
+include(Packing)
 
 install(TARGETS canpi
         RUNTIME DESTINATION bin)
 
-install(SCRIPT
+    install(PROGRAMS
             scripts/start_canpi.sh
-        DESTINATION /etc/init.d)
+        DESTINATION bin)
 
 install(FILES
             config/canpi.service
-        DESTINATION /usr/lib/systemd/system)
+        DESTINATION /lib/systemd/system)
 
 install(FILES
             config/can0.conf
