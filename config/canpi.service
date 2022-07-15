@@ -1,0 +1,21 @@
+[Unit]
+Description=MERG canpi daemon
+Before=multi-user.target
+Before=graphical.target
+After=remote-fs.target
+After=network-online.target
+Wants=network-online.target
+Upholds=canpiconfig.service
+
+[Service]
+Type=simple
+Restart=no
+TimeoutSec=5min
+IgnoreSIGPIPE=no
+KillMode=process
+GuessMainPID=no
+SuccessExitStatus=SIGKILL
+ExecStart=/usr/local/bin/canpi
+
+[Install]
+WantedBy=multi-user.target

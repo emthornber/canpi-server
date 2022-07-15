@@ -69,10 +69,33 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     target_compile_options(${PROJECT_NAME} PRIVATE -c -Wall -fpermissive)
 endif()
 
-#target_link_libraries(${PROJECT_NAME} PUBLIC log4cpp pthread)
+target_link_libraries(${PROJECT_NAME} PUBLIC log4cpp pthread)
 
 # Where to find your CMake modules
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(InstallingConfigs)
 include(InstallingGeneral)
-include(Packing)
+#include(Packing)
+
+install(TARGETS canpi
+        RUNTIME DESTINATION bin)
+
+install(SCRIPT
+            scripts/start_canpi.sh
+        DESTINATION /etc/init.d)
+
+install(FILES
+            config/canpi.service
+        DESTINATION /usr/lib/systemd/system)
+
+install(FILES
+            config/can0.conf
+        DESTINATION /etc/network/interfaces.d)
+
+install(FILES
+            config/canpi.cfg
+            config/turnout.txt
+        DESTINATION etc/${PROJECT_NAME})
+
+install(DIRECTORY webserver
+        DESTINATION etc/${PROJECT_NAME})

@@ -1,0 +1,108 @@
+################################################################################
+#   EPM configuration file to create the canpi package
+#
+#   Note: Expects ${srcdir} to be defined externally
+#
+#   04 July, 2022 - E M Thornber
+#   Created
+#
+################################################################################
+#
+# Utilities
+$AWK=/usr/bin/awk
+$SCTL=/usr/bin/systemctl
+# Directories
+$canpi=/usr/local/etc/canpi
+$bindir=/usr/local/bin
+$ifdir=/etc/network/interfaces.d
+$service=/usr/lib/systemd/system
+# Sources
+$cfgdir=${srcdir}/canpi/config
+$script=${srcdir}/canpi/scripts
+
+%product Interface to MERG CBUS via CANPiCAP
+%copyright 2022 MERG
+%vendor Enchanted Systems Limited
+%license LICENSE
+%readme README.md
+%description Interfaces MERG-CANBUS protocol with JMRI Engine Driver application.
+%version 1.0.4
+
+%requires log4cpp
+%requires pthreads
+%requires python3-webpy
+
+d 755 root root /etc -
+d 755 root root /etc/init.d -
+d 755 root root /etc/network -
+d 755 root root ${ifdir} -
+d 755 root root /usr -
+d 755 root root /usr/lib -
+d 755 root root /usr/lib/systemd -
+d 755 root root ${service} -
+d 755 root root /usr/local -
+d 755 root root ${bindir} -
+d 755 root root /usr/local/etc -
+d 755 root root $canpi -
+
+# canpi daemon, control script, and service definition
+f 755 root root ${bindir}/canpi            ${srcdir}/build/canpi/canpi
+f 755 root root /etc/init.d/start_canpi.sh ${script}/start_canpi.sh
+f 644 root root ${service}/canpi.service   ${cfgdir}/canpi.service
+
+# canpi configuration files
+f 644 root root ${ifdir}/can0.conf   ${cfgdir}/can0.conf
+f 644 root root ${canpi}/canpi.cfg   ${cfgdir}/canpi.cfg
+f 644 root root ${canpi}/turnout.txt ${cfgdir}/turnout.txt
+
+%preinstall <<EOF
+
+cd /etc
+for f in ${saveconf}
+do
+    if [ -f $$f ] ; then mv $$f $$f.preautohs ; fi
+done
+
+EOF
+
+%postinstall <<EOF
+
+# Configure hostapd
+${autohs}/update_hostapd.sh > /etc/hostapd/hostapd.conf
+${SCTL} show --property=LoadState hostapd.service | grep masked && ${SCTL} unmask hostapd.service
+${SCTL} show --property=UnitFileState hostapd.service | grep disabled && ${SCTL} enable hostapd.service
+# Configure dnsmasq
+network=`${AWK} -F'=' '/ap_network/{ print $2 }' ${autohs}/autohotspot.conf`
+if [ -z $$network ] ; then network="192.168.45.1" ; fi
+${AWK} -v APNETWORK=$$network -f ${autohs}/update_dnsmasq.awk ${autohs}/dnsmasq.conf.in > /etc/dnsmasq.conf
+${SCTL} show --property=LoadState dnsmasq.service | grep masked && ${SCTL} unmask dnsmasq.service
+${SCTL} show --property=UnitFileState dnsmasq.service | grep enabled && ${SCTL} disable dnsmasq.service
+# Configure dhcpcd
+if [ -f /etc/dhcpcd.conf.preautohs ]
+then
+    grep -vxf ${autohs}/dhcpcd-remove.conf /etc/dhcpcd.conf.preautohs > /etc/dhcpcd.conf
+fi
+cat ${autohs}/dhcpcd-autohs.conf >> /etc/dhcpcd.conf
+
+${SCTL} daemon-reload
+${SCTL} enable autohotspot
+
+EOF
+
+%preremove <<EOF
+
+${SCTL} stop autohotspot
+${SCTL} disable autohotspot
+
+EOF
+
+%postremove <<EOF
+
+cd /etc
+for f in ${saveconf}
+do
+    if [ -f $$f.preautohs ] ; then mv $$f.preautohs $$f ; fi
+done
+
+EOF
+

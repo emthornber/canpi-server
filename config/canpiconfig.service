@@ -1,0 +1,21 @@
+[Unit]
+Description=MERG canpi configuration webserver
+Before=multi-user.target
+Before=graphical.target
+After=remote-fs.target
+After=network-online.target
+Wants=network-online.target
+PartOf=canpi.service
+
+[Service]
+Type=simple
+Restart=no
+TimeoutSec=5min
+IgnoreSIGPIPE=no
+KillMode=process
+GuessMainPID=no
+SuccessExitStatus=SIGKILL
+ExecStart=/usr/bin/python3 /usr/local/etc/canpi/webserver/canpiconfig.py 3000
+
+[Install]
+WantedBy=multi-user.target
