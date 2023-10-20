@@ -59,6 +59,8 @@ target_sources(${PROJECT_NAME}
         src/utils.h)
 
 target_include_directories(${PROJECT_NAME}
+    PUBLIC
+	/usr/include
     PRIVATE
 	# where the executable itself will look for its internal headers
 	${CMAKE_CURRENT_SOURCE_DIR}/src
