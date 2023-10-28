@@ -8,6 +8,7 @@ endif()
 project("canpi"
 	VERSION ${CANPI_VERSION}
 	DESCRIPTION "CANPiCAP Interface"
+    LANGUAGES CXX
 )
 
 message(STATUS "This project version: ${PROJECT_VERSION}")
@@ -59,8 +60,6 @@ target_sources(${PROJECT_NAME}
         src/utils.h)
 
 target_include_directories(${PROJECT_NAME}
-    PUBLIC
-	/usr/include
     PRIVATE
 	# where the executable itself will look for its internal headers
 	${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -71,7 +70,10 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     target_compile_options(${PROJECT_NAME} PRIVATE -c -Wall -fpermissive)
 endif()
 
-target_link_libraries(${PROJECT_NAME} PUBLIC log4cpp pthread)
+find_library(PTHREAD pthread-2.31 REQUIRED)
+
+target_link_options(${PROJECT_NAME} BEFORE PRIVATE -Bdynamic)
+target_link_libraries(${PROJECT_NAME} log4cpp pthread-2.31)
 
 # Where to find your CMake modules
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
@@ -80,24 +82,21 @@ include(InstallingGeneral)
 include(Packing)
 
 install(TARGETS canpi
-        RUNTIME DESTINATION bin)
+        DESTINATION bin)
 
-    install(PROGRAMS
+install(PROGRAMS
             scripts/start_canpi.sh
         DESTINATION bin)
 
 install(FILES
             config/canpi.service
-        DESTINATION /lib/systemd/system)
+        DESTINATION lib/systemd/system)
 
 install(FILES
             config/can0.conf
-        DESTINATION /etc/network/interfaces.d)
+        DESTINATION etc/network/interfaces.d)
 
 install(FILES
             config/canpi.cfg
             config/turnout.txt
-        DESTINATION etc/${PROJECT_NAME})
-
-install(DIRECTORY webserver
         DESTINATION etc/${PROJECT_NAME})
