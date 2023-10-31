@@ -79,7 +79,6 @@ target_link_libraries(${PROJECT_NAME} log4cpp pthread-2.31)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(InstallingConfigs)
 include(InstallingGeneral)
-include(Packing)
 
 install(TARGETS canpi
         DESTINATION bin)
