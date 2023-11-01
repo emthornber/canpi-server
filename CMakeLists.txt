@@ -83,19 +83,9 @@ include(InstallingGeneral)
 install(TARGETS canpi
         DESTINATION bin)
 
-install(PROGRAMS
-            scripts/start_canpi.sh
-        DESTINATION bin)
-
 install(FILES
             config/canpi.service
-        DESTINATION lib/systemd/system)
-
-install(FILES
             config/can0.conf
-        DESTINATION etc/network/interfaces.d)
-
-install(FILES
             config/canpi.cfg
             config/turnout.txt
-        DESTINATION etc/${PROJECT_NAME})
+        DESTINATION config)

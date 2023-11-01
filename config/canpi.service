@@ -15,7 +15,7 @@ IgnoreSIGPIPE=no
 KillMode=process
 GuessMainPID=no
 SuccessExitStatus=SIGKILL
-ExecStart=/usr/local/bin/canpi
+ExecStart=/usr/local/bin/canpid
 
 [Install]
 WantedBy=multi-user.target
