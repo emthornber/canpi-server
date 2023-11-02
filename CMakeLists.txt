@@ -70,22 +70,15 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     target_compile_options(${PROJECT_NAME} PRIVATE -c -Wall -fpermissive)
 endif()
 
-find_library(PTHREAD pthread-2.31 REQUIRED)
-
 target_link_options(${PROJECT_NAME} BEFORE PRIVATE -Bdynamic)
 target_link_libraries(${PROJECT_NAME} log4cpp pthread-2.31)
 
-# Where to find your CMake modules
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-include(InstallingConfigs)
-include(InstallingGeneral)
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.deb
+        COMMAND BFILE=$<TARGET_FILE:${PROJECT_NAME}> ODIR=${CMAKE_CURRENT_SOURCE_DIR}/package SDIR=${CMAKE_CURRENT_SOURCE_DIR} make -f ${CMAKE_CURRENT_SOURCE_DIR}/package/Makefile all && touch ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.package
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/package/${PROJECT_NAME}.epm $<TARGET_FILE:${PROJECT_NAME}>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
 
-install(TARGETS canpi
-        DESTINATION bin)
-
-install(FILES
-            config/canpi.service
-            config/can0.conf
-            config/canpi.cfg
-            config/turnout.txt
-        DESTINATION config)
+add_custom_target(create_package ALL
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.deb
+)

@@ -1,7 +1,7 @@
 ################################################################################
 #   EPM configuration file to create the canpi package
 #
-#   Note: Expects ${srcdir} to be defined externally
+#   Note: Expects ${binary} and ${srcdir} to be defined externally
 #
 #   04 July, 2022 - E M Thornber
 #   Created
@@ -9,7 +9,6 @@
 ################################################################################
 #
 # Utilities
-$AWK=/usr/bin/awk
 $SCTL=/usr/bin/systemctl
 # Directories
 $canpi=/usr/local/etc/canpi
@@ -17,8 +16,7 @@ $bindir=/usr/local/bin
 $ifdir=/etc/network/interfaces.d
 $service=/usr/lib/systemd/system
 # Sources
-$cfgdir=${srcdir}/canpi/config
-$script=${srcdir}/canpi/scripts
+$cfgdir=${srcdir}/config
 
 %product Interface to MERG CBUS via CANPiCAP
 %copyright 2022 MERG
@@ -28,8 +26,7 @@ $script=${srcdir}/canpi/scripts
 %description Interfaces MERG-CANBUS protocol with JMRI Engine Driver application.
 %version 1.0.4
 
-%requires log4cpp
-%requires pthreads
+%requires liblog4cpp5v5
 
 d 755 root root /etc -
 d 755 root root /etc/init.d -
@@ -45,8 +42,8 @@ d 755 root root /usr/local/etc -
 d 755 root root $canpi -
 
 # canpi daemon, control script, and service definition
-f 755 root root ${bindir}/canpid            ${srcdir}/build/canpi/canpid
-f 644 root root ${service}/canpi.service   ${cfgdir}/canpi.service
+f 755 root root ${bindir}/canpid         ${binary}
+f 644 root root ${service}/canpi.service ${cfgdir}/canpi.service
 
 # canpi configuration files
 f 644 root root ${ifdir}/can0.conf   ${cfgdir}/can0.conf
@@ -56,14 +53,14 @@ f 644 root root ${canpi}/turnout.txt ${cfgdir}/turnout.txt
 %postinstall <<EOF
 
 ${SCTL} daemon-reload
-${SCTL} enable canpid
-${SCTL} start canpid
+${SCTL} enable canpi
+${SCTL} start canpi
 
 EOF
 
 %preremove <<EOF
 
-${SCTL} stop canpid
-${SCTL} disable canpid
+${SCTL} stop canpi
+${SCTL} disable canpi
 
 EOF
