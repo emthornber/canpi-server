@@ -79,6 +79,6 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.deb
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
 
-add_custom_target(create_package ALL
+add_custom_target(canpi_package ALL
         DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.deb
 )
