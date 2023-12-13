@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.16)
 
-set(CANPI_VERSION 1.0.4)
+set(CANPI_SERVER_VERSION 0.1.0)
 if(DEFINED CMAKE_PROJECT_VERSION AND NOT "${CMAKE_PROJECT_VERSION}" STREQUAL "")
-    set(CANPI_VERSION ${CMAKE_PROJECT_VERSION})
+    set(CANPI_SERVER_VERSION ${CMAKE_PROJECT_VERSION})
 endif()
 
-project("canpi"
-	VERSION ${CANPI_VERSION}
-	DESCRIPTION "CANPiCAP Interface"
+project("canpi-server"
+    VERSION ${CANPI_SERVER_VERSION}
+    DESCRIPTION "CANPiCAP Interface"
     LANGUAGES CXX
 )
 
@@ -27,58 +27,66 @@ else()
     message(STATUS "C++ standard has been already set to: ${CMAKE_CXX_STANDARD}")
 endif()
 
+# from Earthly
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
+find_package(log4cpp REQUIRED)
+
 add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME}
-	PRIVATE
-       	src/canHandler.cpp
-        src/canHandler.h
-        src/Client.cpp
-        src/Client.h
-        src/edSession.cpp
-        src/edSession.h
-        src/frameCAN.cpp
-        src/frameCAN.h
-        src/gpio.cpp
-        src/gpio.h
-        src/main.cpp
-        src/msgdata.h
-        src/nodeConfigurator.cpp
-        src/nodeConfigurator.h
-        src/opc_codes.cpp
-        src/opc_codes.h
-        src/opcodes.h
-        src/sessionHandler.cpp
-        src/sessionHandler.h
-        src/tcpClient.cpp
-        src/tcpClient.h
-        src/tcpClientGridConnect.cpp
-        src/tcpClientGridConnect.h
-        src/tcpServer.cpp
-        src/tcpServer.h
-        src/Turnout.cpp
-        src/Turnout.h
-        src/utils.h)
+    PRIVATE
+    src/canHandler.cpp
+    src/canHandler.h
+    src/Client.cpp
+    src/Client.h
+    src/edSession.cpp
+    src/edSession.h
+    src/frameCAN.cpp
+    src/frameCAN.h
+    src/gpio.cpp
+    src/gpio.h
+    src/main.cpp
+    src/msgdata.h
+    src/nodeConfigurator.cpp
+    src/nodeConfigurator.h
+    src/opc_codes.cpp
+    src/opc_codes.h
+    src/opcodes.h
+    src/sessionHandler.cpp
+    src/sessionHandler.h
+    src/tcpClient.cpp
+    src/tcpClient.h
+    src/tcpClientGridConnect.cpp
+    src/tcpClientGridConnect.h
+    src/tcpServer.cpp
+    src/tcpServer.h
+    src/Turnout.cpp
+    src/Turnout.h
+    src/utils.h)
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE
-	# where the executable itself will look for its internal headers
-	${CMAKE_CURRENT_SOURCE_DIR}/src
+    # where the executable itself will look for its internal headers
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
-	
+
 if(CMAKE_COMPILER_IS_GNUCXX)
     # compile options for this target only
     target_compile_options(${PROJECT_NAME} PRIVATE -c -Wall -fpermissive)
 endif()
 
-target_link_options(${PROJECT_NAME} BEFORE PRIVATE -Bdynamic)
-target_link_libraries(${PROJECT_NAME} log4cpp pthread-2.31)
+target_link_options(${PROJECT_NAME} BEFORE PRIVATE -static-libstdc++ -Bdynamic)
+target_link_libraries(${PROJECT_NAME} log4cpp pthread)
 
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.deb
-        COMMAND BFILE=$<TARGET_FILE:${PROJECT_NAME}> ODIR=${CMAKE_CURRENT_SOURCE_DIR}/package SDIR=${CMAKE_CURRENT_SOURCE_DIR} make -f ${CMAKE_CURRENT_SOURCE_DIR}/package/Makefile all && touch ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.package
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/package/${PROJECT_NAME}.epm $<TARGET_FILE:${PROJECT_NAME}>
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    )
+# from Earthly
+include(GNUInstallDirs)
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-add_custom_target(canpi_package ALL
-        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.deb
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.package
+    COMMAND BFILE=$<TARGET_FILE:${PROJECT_NAME}> ODIR=${CMAKE_CURRENT_SOURCE_DIR}/package SDIR=${CMAKE_CURRENT_SOURCE_DIR} make -f ${CMAKE_CURRENT_SOURCE_DIR}/package/Makefile all && touch ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.package
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/package/${PROJECT_NAME}.epm $<TARGET_FILE:${PROJECT_NAME}>
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+add_custom_target(canpi-server-package ALL
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.package
 )

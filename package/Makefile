@@ -12,8 +12,8 @@
 ################################################################################
 
 EPM=/usr/bin/epm
-PKGNAME=canpi
-PKGDEFN=$(PKGNAME).epm
+PKGNAME := $(shell basename $(SDIR) )
+PKGDEFN := $(PKGNAME).epm
 RM=/bin/rm -f
 TS=`date "+%y%m%d-%H%M"`
 
@@ -25,7 +25,7 @@ clean:
 pkgs: portable deb
 
 portable:
-	sudo $(EPM) -a armhf -f portable -vv --output-dir $(ODIR) binary=$(BFILE) srcdir=$(SDIR) $(PKGNAME) $(SDIR)/package/$(PKGDEFN) | tee portable-$(TS).log
+	sudo $(EPM) -a armhf -f portable -vv --output-dir $(ODIR) binary=$(BFILE) srcdir=$(SDIR) $(PKGNAME) $(SDIR)/package/$(PKGDEFN) 2>&1 | tee portable-$(TS).log
 
 deb:
-	sudo $(EPM) -a armhf -f deb -vv --output-dir $(ODIR) binary=$(BFILE) srcdir=$(SDIR) $(PKGNAME) $(SDIR)/package/$(PKGDEFN) | tee deb-$(TS).log
+	sudo $(EPM) -a armhf -f deb      -vv --output-dir $(ODIR) binary=$(BFILE) srcdir=$(SDIR) $(PKGNAME) $(SDIR)/package/$(PKGDEFN) 2>&1 | tee deb-$(TS).log

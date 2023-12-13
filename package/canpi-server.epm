@@ -1,10 +1,13 @@
 ################################################################################
-#   EPM configuration file to create the canpi package
+#   EPM configuration file to create the canpi-server package
 #
 #   Note: Expects ${binary} and ${srcdir} to be defined externally
 #
 #   04 July, 2022 - E M Thornber
 #   Created
+#
+#   13 December, 2023 - E M Thornber
+#   Changed name of package
 #
 ################################################################################
 #

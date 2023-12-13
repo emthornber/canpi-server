@@ -1,0 +1,9 @@
+.idea/
+.idea/workspace.xml
+*.swp
+build-armv6/
+InstallingConfigs.cmake
+InstallingGeneral.cmake
+*.deb
+*.log
+*.tar.gz
