@@ -71,10 +71,10 @@ target_include_directories(${PROJECT_NAME}
 
 if(CMAKE_COMPILER_IS_GNUCXX)
     # compile options for this target only
-    target_compile_options(${PROJECT_NAME} PRIVATE -c -Wall -fpermissive)
+    target_compile_options(${PROJECT_NAME} PRIVATE -c -Wall -fpermissive -mcpu=arm1176jzf-s)
 endif()
 
-target_link_options(${PROJECT_NAME} BEFORE PRIVATE -static-libstdc++ -Bdynamic)
+target_link_options(${PROJECT_NAME} BEFORE PRIVATE -Bdynamic)
 target_link_libraries(${PROJECT_NAME} log4cpp pthread)
 
 # from Earthly
