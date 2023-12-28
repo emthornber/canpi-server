@@ -7,3 +7,4 @@ InstallingGeneral.cmake
 *.deb
 *.log
 *.tar.gz
+canpi.cfg

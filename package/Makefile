@@ -3,6 +3,9 @@
 #       18 July, 2022 - E M Thornber
 #       Created
 #
+#	21 December, 2023 - E M Thornber
+#	Create canpi.cfg from definition file
+#
 #	EVs required
 #	BFILE - path to canpi executable
 #	ODIR - where to place the .deb file
@@ -11,9 +14,10 @@
 #	Working directory is assumed to be ${CMAKE_CURRENT_SOURCE_DIR}
 ################################################################################
 
-EPM=/usr/bin/epm
+EPM=/usr/local/bin/epm
 PKGNAME := $(shell basename $(SDIR) )
 PKGDEFN := $(PKGNAME).epm
+PYTHON := /usr/bin/python3
 RM=/bin/rm -f
 TS=`date "+%y%m%d-%H%M"`
 
@@ -29,3 +33,4 @@ portable:
 
 deb:
 	sudo $(EPM) -a armhf -f deb      -vv --output-dir $(ODIR) binary=$(BFILE) srcdir=$(SDIR) $(PKGNAME) $(SDIR)/package/$(PKGDEFN) 2>&1 | tee deb-$(TS).log
+

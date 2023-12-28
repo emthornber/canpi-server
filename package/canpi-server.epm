@@ -51,6 +51,7 @@ f 644 root root ${service}/canpi.service ${cfgdir}/canpi.service
 # canpi configuration files
 f 644 root root ${ifdir}/can0.conf   ${cfgdir}/can0.conf
 f 644 root root ${canpi}/canpi.cfg   ${cfgdir}/canpi.cfg
+f 644 root root ${canpi}/canpi-config-defn.json   ${cfgdir}/canpi-config-defn.json
 f 644 root root ${canpi}/turnout.txt ${cfgdir}/turnout.txt
 
 %postinstall <<EOF

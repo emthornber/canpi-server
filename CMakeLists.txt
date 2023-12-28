@@ -74,16 +74,25 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     target_compile_options(${PROJECT_NAME} PRIVATE -c -Wall -fpermissive -mcpu=arm1176jzf-s)
 endif()
 
-target_link_options(${PROJECT_NAME} BEFORE PRIVATE -Bdynamic)
 target_link_libraries(${PROJECT_NAME} log4cpp pthread)
 
 # from Earthly
 include(GNUInstallDirs)
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
+add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/config/canpi.cfg
+    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/scripts/create_canpi_cfg.py < ${CMAKE_CURRENT_SOURCE_DIR}/config/canpi-config-defn.json > ${CMAKE_CURRENT_SOURCE_DIR}/config/canpi.cfg
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/config/canpi-config-defn.json
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+add_custom_target(canpi-cfg ALL
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/config/canpi.cfg
+)
+
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.package
     COMMAND BFILE=$<TARGET_FILE:${PROJECT_NAME}> ODIR=${CMAKE_CURRENT_SOURCE_DIR}/package SDIR=${CMAKE_CURRENT_SOURCE_DIR} make -f ${CMAKE_CURRENT_SOURCE_DIR}/package/Makefile all && touch ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.package
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/package/${PROJECT_NAME}.epm $<TARGET_FILE:${PROJECT_NAME}>
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/package/${PROJECT_NAME}.epm $<TARGET_FILE:${PROJECT_NAME}> ${CMAKE_CURRENT_SOURCE_DIR}/config/canpi.cfg
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
