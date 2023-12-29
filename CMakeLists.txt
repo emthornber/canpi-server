@@ -80,19 +80,23 @@ target_link_libraries(${PROJECT_NAME} log4cpp pthread)
 include(GNUInstallDirs)
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/config/canpi.cfg
-    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/scripts/create_canpi_cfg.py < ${CMAKE_CURRENT_SOURCE_DIR}/config/canpi-config-defn.json > ${CMAKE_CURRENT_SOURCE_DIR}/config/canpi.cfg
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/config/canpi-config-defn.json
+set(CPS_CONFIG  ${CMAKE_CURRENT_SOURCE_DIR}/config )
+set(CPS_PKG     ${CMAKE_CURRENT_SOURCE_DIR}/package )
+set(CPS_SCRIPTS ${CMAKE_CURRENT_SOURCE_DIR}/scripts )
+
+add_custom_command(OUTPUT ${CPS_CONFIG}/canpi.cfg
+    COMMAND python3 ${CPS_SCRIPTS}/create_canpi_cfg.py < ${CPS_CONFIG}/canpi-config-defn.json > ${CPS_CONFIG}/canpi.cfg
+    DEPENDS ${CPS_CONFIG}/canpi-config-defn.json
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 add_custom_target(canpi-cfg ALL
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/config/canpi.cfg
+    DEPENDS ${CPS_CONFIG}/canpi.cfg
 )
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.package
-    COMMAND BFILE=$<TARGET_FILE:${PROJECT_NAME}> ODIR=${CMAKE_CURRENT_SOURCE_DIR}/package SDIR=${CMAKE_CURRENT_SOURCE_DIR} make -f ${CMAKE_CURRENT_SOURCE_DIR}/package/Makefile all && touch ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.package
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/package/${PROJECT_NAME}.epm $<TARGET_FILE:${PROJECT_NAME}> ${CMAKE_CURRENT_SOURCE_DIR}/config/canpi.cfg
+    COMMAND BFILE=$<TARGET_FILE:${PROJECT_NAME}> ODIR=${CPS_PKG} SDIR=${CMAKE_CURRENT_SOURCE_DIR} make -f ${CPS_PKG}/Makefile all && touch ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.package
+    DEPENDS ${CPS_PKG}/${PROJECT_NAME}.epm $<TARGET_FILE:${PROJECT_NAME}> ${CPS_CONFIG}/canpi.cfg
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 

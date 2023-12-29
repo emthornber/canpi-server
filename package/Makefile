@@ -6,6 +6,9 @@
 #	21 December, 2023 - E M Thornber
 #	Create canpi.cfg from definition file
 #
+#	29 December, 2023 - E M Thornber
+#	Moved creation of canpi.cfg to CMake
+#
 #	EVs required
 #	BFILE - path to canpi executable
 #	ODIR - where to place the .deb file
