@@ -9,6 +9,9 @@
 #   13 December, 2023 - E M Thornber
 #   Changed name of package
 #
+#   20 January, 2024 - E M Thornber
+#   Add initialisation of device can0
+#
 ################################################################################
 #
 # Utilities
@@ -21,6 +24,7 @@ $service=/usr/lib/systemd/system
 # Sources
 $cfgdir=${srcdir}/config
 
+
 %product Interface to MERG CBUS via CANPiCAP
 %copyright 2022 MERG
 %vendor Enchanted Systems Limited
@@ -29,6 +33,9 @@ $cfgdir=${srcdir}/config
 %description Interfaces MERG-CANBUS protocol with JMRI Engine Driver application.
 %version 1.0.4
 
+%requires avahi-daemon
+%requires avahi-utils
+%requires can-utils
 %requires liblog4cpp5v5
 
 d 755 root root /etc -
@@ -55,6 +62,19 @@ f 644 root root ${canpi}/canpi-config-defn.json   ${cfgdir}/canpi-config-defn.js
 f 644 root root ${canpi}/turnout.txt ${cfgdir}/turnout.txt
 
 %postinstall <<EOF
+# Add can0 to boot configuration
+BOOTCONFIG=/boot/config.txt
+SUFFIX=precanpi
+
+CAN0FILE=`find /boot/overlays/ -type f -name mcp2515-can0\* -exec basename {} \;`
+CAN0OVERLAY="dtoverlay=$${CAN0FILE},oscillator=16000000,interrupt=25"
+SPIDEFN="dtparam=spi="
+
+# Save current boot configuration
+mv $${BOOTCONFIG} $${BOOTCONFIG}.$${SUFFIX}
+grep -v $${SPIDEFN} $${BOOTCONFIG}.$${SUFFIX} | grep -vx $${CAN0OVERLAY} > $${BOOTCONFIG}
+echo "$${SPIDEFN}on"   >> $${BOOTCONFIG}
+echo "$${CAN0OVERLAY}" >> $${BOOTCONFIG}
 
 ${SCTL} daemon-reload
 ${SCTL} enable canpi
