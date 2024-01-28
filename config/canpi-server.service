@@ -5,12 +5,13 @@ Before=graphical.target
 After=remote-fs.target
 After=network-online.target
 Wants=network-online.target
-Upholds=canpiconfig.service
+#Upholds=canpiconfig.service
 
 [Service]
 Type=simple
 Restart=no
 TimeoutSec=5min
+TimeoutStopSec=1
 IgnoreSIGPIPE=no
 KillMode=process
 GuessMainPID=no

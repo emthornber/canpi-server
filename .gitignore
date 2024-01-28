@@ -2,6 +2,7 @@
 .idea/workspace.xml
 *.swp
 build-armv6/
+bullseye-armv6/
 InstallingConfigs.cmake
 InstallingGeneral.cmake
 *.deb

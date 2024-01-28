@@ -16,22 +16,24 @@
 #
 # Utilities
 $SCTL=/usr/bin/systemctl
+$SERVICE="systemd-networkd"
 # Directories
 $canpi=/usr/local/etc/canpi
 $bindir=/usr/local/bin
-$ifdir=/etc/network/interfaces.d
+$ifdir=/etc/systemd/network
 $service=/usr/lib/systemd/system
 # Sources
 $cfgdir=${srcdir}/config
 
+$canpipkg=canpi-server
 
 %product Interface to MERG CBUS via CANPiCAP
-%copyright 2022 MERG
+%copyright 2023 MERG
 %vendor Enchanted Systems Limited
 %license LICENSE
 %readme README.md
 %description Interfaces MERG-CANBUS protocol with JMRI Engine Driver application.
-%version 1.0.4
+%version 1.0.6
 
 %requires avahi-daemon
 %requires avahi-utils
@@ -39,8 +41,8 @@ $cfgdir=${srcdir}/config
 %requires liblog4cpp5v5
 
 d 755 root root /etc -
-d 755 root root /etc/init.d -
-d 755 root root /etc/network -
+d 755 root root /etc/systemd -
+d 755 root root /etc/systemd/network -
 d 755 root root ${ifdir} -
 d 755 root root /usr -
 d 755 root root /usr/lib -
@@ -52,39 +54,60 @@ d 755 root root /usr/local/etc -
 d 755 root root $canpi -
 
 # canpi daemon, control script, and service definition
-f 755 root root ${bindir}/canpid         ${binary}
-f 644 root root ${service}/canpi.service ${cfgdir}/canpi.service
+f 755 root root ${bindir}/canpid                ${binary}
+f 644 root root ${service}/canpi-server.service ${cfgdir}/canpi-server.service
 
 # canpi configuration files
-f 644 root root ${ifdir}/can0.conf   ${cfgdir}/can0.conf
-f 644 root root ${canpi}/canpi.cfg   ${cfgdir}/canpi.cfg
-f 644 root root ${canpi}/canpi-config-defn.json   ${cfgdir}/canpi-config-defn.json
-f 644 root root ${canpi}/turnout.txt ${cfgdir}/turnout.txt
+f 644 root root ${ifdir}/80-can.network         ${cfgdir}/80-can.network
+f 644 root root ${canpi}/canpi.cfg              ${cfgdir}/canpi.cfg
+f 644 root root ${canpi}/canpi-config-defn.json ${cfgdir}/canpi-config-defn.json
+f 644 root root ${canpi}/turnout.txt            ${cfgdir}/turnout.txt
 
-%postinstall <<EOF
+%preinstall <<EOF
 # Add can0 to boot configuration
 BOOTCONFIG=/boot/config.txt
 SUFFIX=precanpi
 
-CAN0FILE=`find /boot/overlays/ -type f -name mcp2515-can0\* -exec basename {} \;`
+CAN0FILE=`find /boot/overlays/ -type f -name mcp2515-can0\* -exec basename {} .dtbo \;`
 CAN0OVERLAY="dtoverlay=$${CAN0FILE},oscillator=16000000,interrupt=25"
 SPIDEFN="dtparam=spi="
 
 # Save current boot configuration
-mv $${BOOTCONFIG} $${BOOTCONFIG}.$${SUFFIX}
+cp $${BOOTCONFIG} $${BOOTCONFIG}.$${SUFFIX}
 grep -v $${SPIDEFN} $${BOOTCONFIG}.$${SUFFIX} | grep -vx $${CAN0OVERLAY} > $${BOOTCONFIG}
 echo "$${SPIDEFN}on"   >> $${BOOTCONFIG}
 echo "$${CAN0OVERLAY}" >> $${BOOTCONFIG}
 
+# Enable and start systemd-networkd service if necessary
+if ! ${SCTL} is-active --quiet --type=service ${SERVICE}
+then ${SCTL} start ${SERVICE}
+fi
+
+if ! ${SCTL} is-enabled --quiet --type=service ${SERVICE}
+then ${SCTL} enable ${SERVICE}
+fi
+
+EOF
+
+%postinstall <<EOF
+
 ${SCTL} daemon-reload
-${SCTL} enable canpi
-${SCTL} start canpi
+${SCTL} restart ${SERVICE}
+${SCTL} enable ${canpipkg}
+# ${SCTL} start ${canpipkg}
 
 EOF
 
 %preremove <<EOF
 
-${SCTL} stop canpi
-${SCTL} disable canpi
+${SCTL} stop ${canpipkg}
+${SCTL} disable ${canpipkg}
+
+EOF
+
+%postremove <<EOF
+
+${SCTL} daemon-reload
+${SCTL} restart ${SERVICE}
 
 EOF
