@@ -74,7 +74,7 @@ f 644 root root ${service}/canpi-server.service ${cfgdir}/canpi-server.service
 
 # canpi configuration files
 f 644 root root ${ifdir}/80-can.network         ${cfgdir}/80-can.network
-f 644 root root ${avahidir/unit.conf            ${cfgdir}/avahi.service.unit.conf
+f 644 root root ${avahidir}/unit.conf           ${cfgdir}/${AVAHID}.service.unit.conf
 f 644 root root ${canpi}/canpi.cfg              ${cfgdir}/canpi.cfg
 f 644 root root ${canpi}/canpi-config-defn.json ${cfgdir}/canpi-config-defn.json
 f 644 root root ${canpi}/turnout.txt            ${cfgdir}/turnout.txt
