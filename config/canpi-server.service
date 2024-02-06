@@ -8,7 +8,7 @@ Wants=network-online.target
 #Upholds=canpiconfig.service
 
 [Service]
-Type=simple
+Type=forking
 Restart=no
 TimeoutSec=5min
 TimeoutStopSec=1
@@ -16,7 +16,9 @@ IgnoreSIGPIPE=no
 KillMode=process
 GuessMainPID=no
 SuccessExitStatus=SIGKILL
-ExecStart=/usr/local/bin/canpid
+Environment="CPSRV_HOME=/usr/local/etc/canpi"
+ExecStart=/usr/local/bin/canpidctl start
+ExecStop=/usr/local/bin/canpidctl stop
 
 [Install]
 WantedBy=multi-user.target

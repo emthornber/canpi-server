@@ -12,20 +12,28 @@
 #   20 January, 2024 - E M Thornber
 #   Add initialisation of device can0
 #
+#   01 February, 2024 - E M Thornber
+#   Add initialisation of avahi (Bonjour)
+#
 ################################################################################
 #
 # Utilities
 $SCTL=/usr/bin/systemctl
-$SERVICE="systemd-networkd"
+# Services
+$AVAHID="avahi-daemon"
+$CANPI="canpi-server"
+$NETWORKD="systemd-networkd"
 # Directories
 $canpi=/usr/local/etc/canpi
 $bindir=/usr/local/bin
 $ifdir=/etc/systemd/network
+$logdir=/var/log/canpid
 $service=/usr/lib/systemd/system
+$avahidir=/etc/systemd/system/${AVAHID}.service.d
 # Sources
 $cfgdir=${srcdir}/config
+$scripts=${srcdir}/scripts
 
-$canpipkg=canpi-server
 
 %product Interface to MERG CBUS via CANPiCAP
 %copyright 2023 MERG
@@ -33,7 +41,7 @@ $canpipkg=canpi-server
 %license LICENSE
 %readme README.md
 %description Interfaces MERG-CANBUS protocol with JMRI Engine Driver application.
-%version 1.0.6
+%version 1.0.7
 
 %requires avahi-daemon
 %requires avahi-utils
@@ -41,9 +49,12 @@ $canpipkg=canpi-server
 %requires liblog4cpp5v5
 
 d 755 root root /etc -
+d 755 root root /etc/logrotate.d -
 d 755 root root /etc/systemd -
 d 755 root root /etc/systemd/network -
 d 755 root root ${ifdir} -
+d 755 root root /etc/systemd/system -
+d 755 root root ${avahidir} -
 d 755 root root /usr -
 d 755 root root /usr/lib -
 d 755 root root /usr/lib/systemd -
@@ -51,17 +62,23 @@ d 755 root root ${service} -
 d 755 root root /usr/local -
 d 755 root root ${bindir} -
 d 755 root root /usr/local/etc -
-d 755 root root $canpi -
+d 755 root root ${canpi} -
+d 755 root root /var -
+d 755 root root /var/log -
+d 755 root root ${logdir} -
 
 # canpi daemon, control script, and service definition
 f 755 root root ${bindir}/canpid                ${binary}
+f 755 root root ${bindir}/canpidctl             ${scripts}/canpidctl.bash
 f 644 root root ${service}/canpi-server.service ${cfgdir}/canpi-server.service
 
 # canpi configuration files
 f 644 root root ${ifdir}/80-can.network         ${cfgdir}/80-can.network
+f 644 root root ${avahidir/unit.conf            ${cfgdir}/avahi.service.unit.conf
 f 644 root root ${canpi}/canpi.cfg              ${cfgdir}/canpi.cfg
 f 644 root root ${canpi}/canpi-config-defn.json ${cfgdir}/canpi-config-defn.json
 f 644 root root ${canpi}/turnout.txt            ${cfgdir}/turnout.txt
+f 644 root root /etc/logrotate.d/canpid         ${cfgdir}/canpid.logrotate
 
 %preinstall <<EOF
 # Add can0 to boot configuration
@@ -79,12 +96,12 @@ echo "$${SPIDEFN}on"   >> $${BOOTCONFIG}
 echo "$${CAN0OVERLAY}" >> $${BOOTCONFIG}
 
 # Enable and start systemd-networkd service if necessary
-if ! ${SCTL} is-active --quiet --type=service ${SERVICE}
-then ${SCTL} start ${SERVICE}
+if ! ${SCTL} is-enabled --quiet --type=service ${NETWORKD}
+then ${SCTL} enable ${NETWORKD}
 fi
 
-if ! ${SCTL} is-enabled --quiet --type=service ${SERVICE}
-then ${SCTL} enable ${SERVICE}
+if ! ${SCTL} is-active --quiet --type=service ${NETWORKD}
+then ${SCTL} start ${NETWORKD}
 fi
 
 EOF
@@ -92,22 +109,26 @@ EOF
 %postinstall <<EOF
 
 ${SCTL} daemon-reload
-${SCTL} restart ${SERVICE}
-${SCTL} enable ${canpipkg}
-# ${SCTL} start ${canpipkg}
+${SCTL} restart ${AVAHID}
+${SCTL} restart ${NETWORKD}
+${SCTL} enable ${CANPI}
+# The can0 device will only be loaded when the RPi is rebooted so there
+# is no point in starting ${CANPI} service
+# ${SCTL} start ${CANPI}
 
 EOF
 
 %preremove <<EOF
 
-${SCTL} stop ${canpipkg}
-${SCTL} disable ${canpipkg}
+${SCTL} stop ${CANPI}
+${SCTL} disable ${CANPI}
 
 EOF
 
 %postremove <<EOF
 
 ${SCTL} daemon-reload
-${SCTL} restart ${SERVICE}
+${SCTL} restart ${AVAHID}
+${SCTL} restart ${NETWORKD}
 
 EOF

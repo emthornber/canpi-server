@@ -1,0 +1,9 @@
+"/var/log/canpid/stdout.log" /var/log/canpid/stderr.log {
+	daily
+	missingok
+	rotate 5
+	compress
+	delaycompress
+	notifempty
+	create 644 root adm
+}
