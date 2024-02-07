@@ -11,7 +11,7 @@
 ################################################################################
 
 # Read configuration
-if test -f $CANPI_INI_FILE ; then
+if test -f "$CANPI_INI_FILE" ; then
     # Configuration file exists - source it
     . $CANPI_INI_FILE
 else
@@ -21,6 +21,7 @@ else
     edserver="Y"
 fi
 ED_FILE=${CPSRV_HOME}/ed.enabled
+PID_FILE=/run/canpid.pid
 
 setup_bonjour() {
     # Change the service name and port
@@ -31,18 +32,27 @@ setup_bonjour() {
 
     # Restart the service
     systemctl restart avahi-daemon
-    sleep 1
-    echo Bonjour service is `systemctl is-active avahi-daemon`
+}
+
+teardown_bonjour() {
+    AVAHI_FILE=multiple.service
+    BONJOUR_FILE=/etc/avahi/services/${AVAHI_FILE}
+    rm -f $BONJOUR_FILE
+
+    # Restart the service
+    systemctl restart avahi-daemon
 }
 
 start_canpid() {
-    if [ `pgrep canpid` ] ;
+    pid=`pgrep --exact canpid`
+    if [ $? -eq 0 ] ;
     then
 	echo canpi already running
     else
 	echo starting canpid
-	/usr/local/bin/canpid >> "/var/log/canpid/stdout.log" 2>>"/var/log/canpid/stderr.log"
-	if [ ! `pgrep canpid` ] ; then echo canpid did not start ; fi
+	/usr/local/bin/canpid >> "/var/log/canpid/stdout.log" 2>>"/var/log/canpid/stderr.log" &
+	echo $! > $PID_FILE
+	if [ ! `pgrep --exact canpid` ] ; then echo canpid did not start ; fi
     fi
 
     # Check if edserver is enabled
@@ -54,8 +64,8 @@ start_canpid() {
 }
 
 stop_canpid() {
-    if [ `pgrep canpid` ]; then
-	pkill canpid
+    if [ `pgrep --exact canpid` ]; then
+	pkill -9 --exact canpid
 	echo canpid killed
     else
 	echo canpid not active
@@ -66,9 +76,8 @@ stop_canpid() {
 # main code
 case "$1" in
 start)
-    setup_bonjour
     start_canpid
-    systemctl restart avahi-daemon
+    setup_bonjour
     ;;
 restart)
     $0 stop
@@ -76,7 +85,7 @@ restart)
     ;;
 stop)
     stop_canpid
-    systemctl restart avahi-daemon
+    teardown_bonjour
     ;;
 *)
     echo "Usage: $0 (start|restart|stop)"

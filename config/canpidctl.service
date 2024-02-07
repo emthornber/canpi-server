@@ -16,9 +16,11 @@ IgnoreSIGPIPE=no
 KillMode=process
 GuessMainPID=no
 SuccessExitStatus=SIGKILL
-Environment="CPSRV_HOME=/usr/local/etc/canpi"
+Environment="CPSRV_HOME=/usr/local/etc/canpi" "CANPI_INI_FILE=/usr/local/etc/canpi/canpi.cfg"
 ExecStart=/usr/local/bin/canpidctl start
+ExecReload=/usr/local/bin/canpidctl restart
 ExecStop=/usr/local/bin/canpidctl stop
+PIDFile=/run/canpid.pid
 
 [Install]
 WantedBy=multi-user.target
