@@ -21,7 +21,7 @@
 $SCTL=/usr/bin/systemctl
 # Services
 $AVAHID="avahi-daemon"
-$CANPI="canpi-server"
+$CANPI="canpid.service"
 $NETWORKD="systemd-networkd"
 # Directories
 $canpi=/usr/local/etc/canpi
@@ -68,15 +68,16 @@ d 755 root root /var/log -
 d 755 root root ${logdir} -
 
 # canpi daemon, control script, and service definition
-f 755 root root ${bindir}/canpid                ${binary}
-f 755 root root ${bindir}/canpidctl             ${scripts}/canpidctl.bash
-f 644 root root ${service}/canpi-server.service ${cfgdir}/canpi-server.service
+f 755 root root ${bindir}/canpid    ${binary}
+f 755 root root ${bindir}/canpidctl ${scripts}/canpidctl.bash
+f 644 root root ${service}/${CANPI} ${cfgdir}/${CANPI}
 
 # canpi configuration files
 f 644 root root ${ifdir}/80-can.network         ${cfgdir}/80-can.network
 f 644 root root ${avahidir}/unit.conf           ${cfgdir}/${AVAHID}.service.unit.conf
 f 644 root root ${canpi}/canpi.cfg              ${cfgdir}/canpi.cfg
 f 644 root root ${canpi}/canpi-config-defn.json ${cfgdir}/canpi-config-defn.json
+f 644 root root ${canpi}/multiple.service.in    ${cfgdir}/multiple.service.in
 f 644 root root ${canpi}/turnout.txt            ${cfgdir}/turnout.txt
 f 644 root root /etc/logrotate.d/canpid         ${cfgdir}/canpid.logrotate
 
@@ -122,6 +123,7 @@ EOF
 
 ${SCTL} stop ${CANPI}
 ${SCTL} disable ${CANPI}
+rm -f ${canpi}/ed.enabled
 
 EOF
 
