@@ -20,14 +20,14 @@ else
     tcpport="5555"
     edserver="Y"
 fi
+AVAHI_FILE=multiple.service
+BONJOUR_TEMPLATE=${CPSRV_HOME}/${AVAHI_FILE}.in
+BONJOUR_FILE=/etc/avahi/services/${AVAHI_FILE}
 ED_FILE=${CPSRV_HOME}/ed.enabled
 PID_FILE=/run/canpid.pid
 
 setup_bonjour() {
     # Change the service name and port
-    AVAHI_FILE=multiple.service
-    BONJOUR_TEMPLATE=$CPSVR_HOME/${AVAHI_FILE}.in
-    BONJOUR_FILE=/etc/avahi/services/${AVAHI_FILE}
     sed -e "s/|SERVICENAME|/$service_name/" -e "s/|PORT|/$tcpport/" $BONJOUR_TEMPLATE > $BONJOUR_FILE
 
     # Restart the service
@@ -35,8 +35,6 @@ setup_bonjour() {
 }
 
 teardown_bonjour() {
-    AVAHI_FILE=multiple.service
-    BONJOUR_FILE=/etc/avahi/services/${AVAHI_FILE}
     rm -f $BONJOUR_FILE
 
     # Restart the service
