@@ -81,6 +81,22 @@ f 644 root root ${canpi}/multiple.service.in    ${cfgdir}/multiple.service.in
 f 644 root root ${canpi}/turnout.txt            ${cfgdir}/turnout.txt
 f 644 root root /etc/logrotate.d/canpid         ${cfgdir}/canpid.logrotate
 
+%literal(control) <<EOF
+Template: canpi-server/reboot
+Type: note
+Description: You must reboot to complete the package installation
+ The package installation updates the device table overlay definition.
+ For these changes to take effect the system must be restarted.
+ The canpi daemon is not started by the package installation as the lack of /dev/can0
+ will cause it to fail immediately.
+
+ However, if the /dev/can0 device is already configured, the canpid service can be started by hand
+ `sudo systemctl start canpid.service`
+ and status checked with
+ `sudo syste4mctl status canpid.service`
+
+EOF
+
 %preinstall <<EOF
 # Add can0 to boot configuration
 BOOTCONFIG=/boot/config.txt
