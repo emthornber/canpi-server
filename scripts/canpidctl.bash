@@ -8,6 +8,9 @@
 #   03 February, 2024 - E M Thornber
 #   Created
 #
+#   15 February, 2024 - E M Thornber
+#   Remove use of ed.enabled flag file
+#
 ################################################################################
 
 # Read configuration
@@ -18,12 +21,11 @@ else
     # Set bonjour defaults
     service_name=`uname -n`
     tcpport="5555"
-    edserver="Y"
+    edserver="True"
 fi
 AVAHI_FILE=multiple.service
 BONJOUR_TEMPLATE=${CPSRV_HOME}/${AVAHI_FILE}.in
 BONJOUR_FILE=/etc/avahi/services/${AVAHI_FILE}
-ED_FILE=${CPSRV_HOME}/ed.enabled
 PID_FILE=/run/canpid.pid
 
 setup_bonjour() {
@@ -54,10 +56,10 @@ start_canpid() {
     fi
 
     # Check if edserver is enabled
-    if [ ${edserver,,} == "y" ] ; then
-	touch $ED_FILE
+    if [ ${edserver,,} == "true" ] ; then
+	setup_bonjour
     else
-	rm -f $ED_FILE
+	teardown_bonjour
     fi
 }
 
@@ -68,14 +70,13 @@ stop_canpid() {
     else
 	echo canpid not active
     fi
-    rm -f $ED_FILE
+    teardown_bonjour
 }
 
 # main code
 case "$1" in
 start)
     start_canpid
-    setup_bonjour
     ;;
 restart)
     $0 stop
@@ -83,7 +84,6 @@ restart)
     ;;
 stop)
     stop_canpid
-    teardown_bonjour
     ;;
 *)
     echo "Usage: $0 (start|restart|stop)"
