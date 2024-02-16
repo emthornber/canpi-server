@@ -15,6 +15,10 @@
 #   01 February, 2024 - E M Thornber
 #   Add initialisation of avahi (Bonjour)
 #
+#   09 February, 2024 - E M Thornber
+#   Add template re rebooting after installation
+#   Handle various paths to config.txt
+#
 ################################################################################
 #
 # Utilities
@@ -34,6 +38,7 @@ $avahidir=/etc/systemd/system/${AVAHID}.service.d
 $cfgdir=${srcdir}/config
 $scripts=${srcdir}/scripts
 
+$candev=/proc/device-tree/can0_osc
 
 %product Interface to MERG CBUS via CANPiCAP
 %copyright 2023 MERG
@@ -41,10 +46,11 @@ $scripts=${srcdir}/scripts
 %license LICENSE
 %readme README.md
 %description Interfaces MERG-CANBUS protocol with JMRI Engine Driver application.
-%version 1.0.7
+%version 1.0.8
 
 %requires avahi-daemon
 %requires avahi-utils
+%requires debconf
 %requires can-utils
 %requires liblog4cpp5v5
 
@@ -53,8 +59,6 @@ d 755 root root /etc/logrotate.d -
 d 755 root root /etc/systemd -
 d 755 root root /etc/systemd/network -
 d 755 root root ${ifdir} -
-d 755 root root /etc/systemd/system -
-d 755 root root ${avahidir} -
 d 755 root root /usr -
 d 755 root root /usr/lib -
 d 755 root root /usr/lib/systemd -
@@ -74,43 +78,56 @@ f 644 root root ${service}/${CANPI} ${cfgdir}/${CANPI}
 
 # canpi configuration files
 f 644 root root ${ifdir}/80-can.network         ${cfgdir}/80-can.network
-f 644 root root ${avahidir}/unit.conf           ${cfgdir}/${AVAHID}.service.unit.conf
 f 644 root root ${canpi}/canpi.cfg              ${cfgdir}/canpi.cfg
 f 644 root root ${canpi}/canpi-config-defn.json ${cfgdir}/canpi-config-defn.json
 f 644 root root ${canpi}/multiple.service.in    ${cfgdir}/multiple.service.in
 f 644 root root ${canpi}/turnout.txt            ${cfgdir}/turnout.txt
 f 644 root root /etc/logrotate.d/canpid         ${cfgdir}/canpid.logrotate
 
-%literal(control) <<EOF
+%literal(config) <<EOF
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+if [ ! -e ${candev} ] ; then
+    # The can0 device will only be loaded when the RPi is rebooted
+    db_set canpi-server/reboot false
+    db_input high canpi-server/reboot || true
+    db_go || true
+fi
+
+EOF
+
+%literal(templates) <<EOF
 Template: canpi-server/reboot
-Type: note
-Description: You must reboot to complete the package installation
+Type: boolean
+Description: Would you like to reboot to complete the package installation ?
  The package installation updates the device table overlay definition.
  For these changes to take effect the system must be restarted.
  The canpi daemon is not started by the package installation as the lack of /dev/can0
  will cause it to fail immediately.
 
- However, if the /dev/can0 device is already configured, the canpid service can be started by hand
- `sudo systemctl start canpid.service`
- and status checked with
- `sudo syste4mctl status canpid.service`
-
 EOF
 
 %preinstall <<EOF
-# Add can0 to boot configuration
-BOOTCONFIG=/boot/config.txt
-SUFFIX=precanpi
+# Check status of can0 device
+if [ ! -e ${candev} ] ; then
+    # Add can0 to boot configuration
+    BOOTCONFIG=/boot/firmware/config.txt
+    if [ ! -f $${BOOTCONFIG} ]
+    then BOOTCONFIG=/boot/config.txt
+    fi
+    SUFFIX=precanpi
 
-CAN0FILE=`find /boot/overlays/ -type f -name mcp2515-can0\* -exec basename {} .dtbo \;`
-CAN0OVERLAY="dtoverlay=$${CAN0FILE},oscillator=16000000,interrupt=25"
-SPIDEFN="dtparam=spi="
+    CAN0FILE=`find /boot/overlays/ -type f -name mcp2515-can0\* -exec basename {} .dtbo \;`
+    CAN0OVERLAY="dtoverlay=$${CAN0FILE},oscillator=16000000,interrupt=25"
+    SPIDEFN="dtparam=spi="
 
-# Save current boot configuration
-cp $${BOOTCONFIG} $${BOOTCONFIG}.$${SUFFIX}
-grep -v $${SPIDEFN} $${BOOTCONFIG}.$${SUFFIX} | grep -vx $${CAN0OVERLAY} > $${BOOTCONFIG}
-echo "$${SPIDEFN}on"   >> $${BOOTCONFIG}
-echo "$${CAN0OVERLAY}" >> $${BOOTCONFIG}
+    # Save current boot configuration
+    cp $${BOOTCONFIG} $${BOOTCONFIG}.$${SUFFIX}
+    grep -v $${SPIDEFN} $${BOOTCONFIG}.$${SUFFIX} | grep -vx $${CAN0OVERLAY} > $${BOOTCONFIG}
+    echo "$${SPIDEFN}on"   >> $${BOOTCONFIG}
+    echo "$${CAN0OVERLAY}" >> $${BOOTCONFIG}
+fi
 
 # Enable and start systemd-networkd service if necessary
 if ! ${SCTL} is-enabled --quiet --type=service ${NETWORKD}
@@ -124,26 +141,38 @@ fi
 EOF
 
 %postinstall <<EOF
+# Source debconf library.
+. /usr/share/debconf/confmodule
 
 ${SCTL} daemon-reload
 ${SCTL} restart ${AVAHID}
 ${SCTL} restart ${NETWORKD}
 ${SCTL} enable ${CANPI}
-# The can0 device will only be loaded when the RPi is rebooted so there
-# is no point in starting ${CANPI} service
-# ${SCTL} start ${CANPI}
+# Check status of can0 device
+if [ -e ${candev} ]
+then ${SCTL} start ${CANPI}
+else
+    # The can0 device will only be loaded when the RPi is rebooted
+    db_get canpi-server/reboot
+    if [ "$$RET" = true ]; then shutdown -r now ; fi
+fi
 
 EOF
 
 %preremove <<EOF
-
 ${SCTL} stop ${CANPI}
 ${SCTL} disable ${CANPI}
-rm -f ${canpi}/ed.enabled
 
 EOF
 
 %postremove <<EOF
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+if [ "$$1" = "purge" ]; then
+    # Remove my changes to the debconf db.
+    db_purge
+fi
 
 ${SCTL} daemon-reload
 ${SCTL} restart ${AVAHID}

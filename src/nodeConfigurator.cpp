@@ -982,7 +982,7 @@ bool nodeConfigurator::setLogAppend(bool val){
     else r = "False";
 
     if (config.find(TAG_LOGAPPEND) == config.end()) return false;
-    config[TAG_SERV_NAME] = r;
+    config[TAG_LOGAPPEND] = r;
     return true;
 }
 bool nodeConfigurator::getLogAppend(){
@@ -1005,7 +1005,7 @@ bool nodeConfigurator::setLogConsole(bool val){
     else r = "False";
 
     if (config.find(TAG_LOGCONSOLE) == config.end()) return false;
-    config[TAG_SERV_NAME] = r;
+    config[TAG_LOGCONSOLE] = r;
     return true;
 }
 
