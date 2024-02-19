@@ -12,7 +12,7 @@
 #include <string>
 #include <sys/stat.h>
 
-//logger
+// logger
 #include "log4cpp/Portability.hh"
 #ifdef LOG4CPP_HAVE_UNISTD_H
 #include <unistd.h>
@@ -33,7 +33,7 @@
 #include "log4cpp/Priority.hh"
 #include "log4cpp/NDC.hh"
 
-//project classes
+// project classes
 #include "utils.h"
 #include "canHandler.h"
 #include "Turnout.h"
@@ -41,17 +41,43 @@
 #include "sessionHandler.h"
 
 using namespace std;
-//using namespace libconfig;
+// using namespace libconfig;
 int running = 1;
 
 void sigterm(int signo)
 {
-   running = 0;
+    running = 0;
 }
 
-inline bool file_exists (const std::string& name) {
-  struct stat buffer;
-  return (stat (name.c_str(), &buffer) == 0);
+inline bool file_exists(const std::string &name)
+{
+    struct stat buffer;
+    return (stat(name.c_str(), &buffer) == 0);
+}
+
+//********************************
+// Read EVs and build file paths
+//********************************
+string get_cps_home()
+{
+    char *env = std::getenv("CPSRV_HOME");
+    std::string cpsrv_home;
+    if (env)
+        cpsrv_home = env;
+    else
+        cpsrv_home = "/usr/local/etc/canpi";
+    return cpsrv_home;
+}
+
+string get_cps_cfg()
+{
+    char *env = std::getenv("CANPI_INI_FILE");
+    std::string cps_cfg;
+    if (env)
+        cps_cfg = env;
+    else
+        cps_cfg = get_cps_home() + "/canpi.cfg";
+    return cps_cfg;
 }
 
 int main()
@@ -61,12 +87,12 @@ int main()
     signal(SIGINT, sigterm);
 
     //****************
-    //default config
+    // default config
     //***************
     log4cpp::Priority::PriorityLevel loglevel = log4cpp::Priority::DEBUG;
-    string logfile = "canpi.log";
-    string configfile = "canpi.cfg";
-    string turnoutfile = "turnout.txt";
+    string logfile = get_cps_home() + "canpi.log";
+    string configfile = get_cps_cfg();
+    string turnoutfile = get_cps_home() + "turnout.txt";
     int port = 5555;
     string candevice = "can0";
     bool append = false;
@@ -74,40 +100,49 @@ int main()
     bool start_ed_server = false;
     int gridport = 5550;
     int canid = 100;
-    int pb_pin=4;
-    int gled_pin=18;
-    int yled_pin=27;
-    int node_number=4321;
-    log4cpp::Category& logger = log4cpp::Category::getRoot();
-    nodeConfigurator *config = new nodeConfigurator(configfile,&logger);
+    int pb_pin = 4;
+    int gled_pin = 18;
+    int yled_pin = 27;
+    int node_number = 4321;
+    log4cpp::Category &logger = log4cpp::Category::getRoot();
+    nodeConfigurator *config = new nodeConfigurator(configfile, &logger);
 
-    //get configuration
+    // get configuration
     string debugLevel = config->getLogLevel();
 
-    if (!debugLevel.empty()){
-        if (debugLevel.compare(TAG_INFO) == 0){
-           loglevel = log4cpp::Priority::INFO;
+    if (!debugLevel.empty())
+    {
+        if (debugLevel.compare(TAG_INFO) == 0)
+        {
+            loglevel = log4cpp::Priority::INFO;
         }
-        if (debugLevel.compare(TAG_WARN) == 0){
-           loglevel = log4cpp::Priority::WARN;
+        if (debugLevel.compare(TAG_WARN) == 0)
+        {
+            loglevel = log4cpp::Priority::WARN;
         }
-        if (debugLevel.compare(TAG_NOTICE) == 0){
-           loglevel = log4cpp::Priority::NOTICE;
+        if (debugLevel.compare(TAG_NOTICE) == 0)
+        {
+            loglevel = log4cpp::Priority::NOTICE;
         }
-        if (debugLevel.compare(TAG_FATAL) == 0){
-           loglevel = log4cpp::Priority::FATAL;
+        if (debugLevel.compare(TAG_FATAL) == 0)
+        {
+            loglevel = log4cpp::Priority::FATAL;
         }
-        if (debugLevel.compare(TAG_ERROR) == 0){
-           loglevel = log4cpp::Priority::ERROR;
+        if (debugLevel.compare(TAG_ERROR) == 0)
+        {
+            loglevel = log4cpp::Priority::ERROR;
         }
-        if (debugLevel.compare(TAG_EMERG) == 0){
-           loglevel = log4cpp::Priority::EMERG;
+        if (debugLevel.compare(TAG_EMERG) == 0)
+        {
+            loglevel = log4cpp::Priority::EMERG;
         }
-        if (debugLevel.compare(TAG_ALERT) == 0){
-           loglevel = log4cpp::Priority::ALERT;
+        if (debugLevel.compare(TAG_ALERT) == 0)
+        {
+            loglevel = log4cpp::Priority::ALERT;
         }
-        if (debugLevel.compare(TAG_NOTSET) == 0){
-           loglevel = log4cpp::Priority::NOTSET;
+        if (debugLevel.compare(TAG_NOTSET) == 0)
+        {
+            loglevel = log4cpp::Priority::NOTSET;
         }
     }
 
@@ -125,11 +160,12 @@ int main()
     yled_pin = config->getYellowLed();
     node_number = config->getNodeNumber();
 
-    //config the logger
+    // config the logger
     logger.setPriority(loglevel);
 
-    if (config->getLogConsole()){
-        log4cpp::PatternLayout * layout1 = new log4cpp::PatternLayout();
+    if (config->getLogConsole())
+    {
+        log4cpp::PatternLayout *layout1 = new log4cpp::PatternLayout();
         layout1->setConversionPattern("%d [%p] %m%n");
 
         log4cpp::Appender *appender1 = new log4cpp::OstreamAppender("console", &std::cout);
@@ -138,48 +174,50 @@ int main()
         logger.addAppender(appender1);
     }
 
+    if (config->getCreateLogfile())
+    {
 
-    if (config->getCreateLogfile()){
-
-        log4cpp::PatternLayout * layout2 = new log4cpp::PatternLayout();
+        log4cpp::PatternLayout *layout2 = new log4cpp::PatternLayout();
         layout2->setConversionPattern("%d [%p] %m%n");
 
-        //log4cpp::Appender *appender2 = new log4cpp::FileAppender("default", logfile, append);
-        log4cpp::Appender *appender2 = new log4cpp::RollingFileAppender("default", logfile,5*1024*1024,10, append);//5M
+        // log4cpp::Appender *appender2 = new log4cpp::FileAppender("default", logfile, append);
+        log4cpp::Appender *appender2 = new log4cpp::RollingFileAppender("default", logfile, 5 * 1024 * 1024, 10, append); // 5M
         appender2->setLayout(new log4cpp::BasicLayout());
         appender2->setLayout(layout2);
         logger.addAppender(appender2);
     }
     logger.info("Logger initated");
 
-    //config->printMemoryNVs();
+    // config->printMemoryNVs();
 
-    //start the CAN
-    canHandler can = canHandler(&logger,canid);
-    //set the configurator
+    // start the CAN
+    canHandler can = canHandler(&logger, canid);
+    // set the configurator
     can.setConfigurator(config);
-    //set gpio pins
-    can.setPins(pb_pin,gled_pin,yled_pin);
+    // set gpio pins
+    can.setPins(pb_pin, gled_pin, yled_pin);
     can.setNodeNumber(node_number);
 
-    //start the CAN threads
-    if (can.start(candevice.c_str()) == -1 ){
+    // start the CAN threads
+    if (can.start(candevice.c_str()) == -1)
+    {
         logger.error("Failed to start can Handler.");
         return 1;
     };
 
-
-    //start the session handler
+    // start the session handler
     sessionHandler session_handler = sessionHandler(&logger, config, &can);
-	session_handler.start();
-    //start the tcp server
+    session_handler.start();
+    // start the tcp server
 
     tcpServer *edserver;
-    if (start_ed_server){
-        //load the turnout file
-        Turnout *turnouts=new Turnout(&logger);
-        if (file_exists(turnoutfile)){
-           turnouts->load(turnoutfile);
+    if (start_ed_server)
+    {
+        // load the turnout file
+        Turnout *turnouts = new Turnout(&logger);
+        if (file_exists(turnoutfile))
+        {
+            turnouts->load(turnoutfile);
         }
 
         edserver = new tcpServer(&logger, port, &can, &session_handler, CLIENT_TYPE::ED);
@@ -189,27 +227,33 @@ int main()
         can.setTcpServer(edserver);
     }
 
-    //start the grid tcp server
+    // start the grid tcp server
     tcpServer *gridserver;
-    if (start_grid_server){
+    if (start_grid_server)
+    {
         gridserver = new tcpServer(&logger, gridport, &can, nullptr, CLIENT_TYPE::GRID);
         gridserver->setNodeConfigurator(config);
         gridserver->start();
         can.setTcpServer(gridserver);
     }
 
-    //keep looping forever
-    while (running == 1){usleep(1000000);};
+    // keep looping forever
+    while (running == 1)
+    {
+        usleep(1000000);
+    };
 
-    //finishes
+    // finishes
     logger.info("Stopping the session handler");
     session_handler.stop();
-    if (start_ed_server){
+    if (start_ed_server)
+    {
         logger.info("Stopping the ed server");
         edserver->stop();
     }
 
-    if (start_grid_server){
+    if (start_grid_server)
+    {
         logger.info("Stopping the grid server");
         gridserver->stop();
     }
@@ -217,11 +261,11 @@ int main()
     logger.info("Stopping CBUS reader");
     can.stop();
 
-    //give some time for the threads to finish
+    // give some time for the threads to finish
     long t = 2 * 1000000;
     usleep(t);
 
-    //clear the stuff
+    // clear the stuff
     log4cpp::Category::shutdown();
     delete config;
 
