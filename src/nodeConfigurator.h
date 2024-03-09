@@ -92,7 +92,8 @@ turnout file name
 
 #define FN_SIZE 29
 
-using namespace std;
+using std::string;
+using std::vector;
 
 class nodeConfigurator
 {
@@ -238,10 +239,10 @@ class nodeConfigurator
         bool nvToEdserver();
         void momentaryFnsToNVs();
         vector<string> & split(const string &s, char delim, vector<string> &elems);
-        map<string,string> config;
+        std::map<string,string> config;
         string removeChar(string val,char c);
         string cleanString(string val);
-        pair <string,string> getpair(string val);
+        std::pair <string,string> getpair(string val);
 
 
 };

@@ -6,7 +6,8 @@
 #include <map>
 #include "opcodes.h"
 
-using namespace std;
+using std::string;
+using std::map;
 
 /*
 * Storage class for opc codes

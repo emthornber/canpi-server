@@ -23,8 +23,8 @@ opc_code* opc_container::getByName(string name){
 
 
 void opc_container::populate_both(int code, string name, string description){
-    opcs_by_code.insert(pair<int, opc_code*>(code, new opc_code(code, name, description)));
-    opcs_by_name.insert(pair<string, opc_code*>(name, new opc_code(code, name, description)));
+    opcs_by_code.insert(std::pair<int, opc_code*>(code, new opc_code(code, name, description)));
+    opcs_by_name.insert(std::pair<string, opc_code*>(name, new opc_code(code, name, description)));
 }
 
 void opc_container::populate(){

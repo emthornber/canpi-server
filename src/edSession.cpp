@@ -48,7 +48,7 @@ void edSession::getMomentaryFNs(){
 }
 //specific for each loco
 void edSession::getMomentaryFNs(int loco){
-    stringstream ss;
+    std::stringstream ss;
     string s;
     ss << "R";
     ss << loco;
@@ -90,7 +90,7 @@ void edSession::setMomentaryFNs(string val){
 
 string edSession::getMomentary(){
     int i;
-    stringstream ss;
+    std::stringstream ss;
     string s;
 
     for (i=0;i<FN_SIZE;i++){
@@ -108,7 +108,7 @@ string edSession::getMomentary(){
 
 vector<string> & edSession::split(const string &s, char delim, vector<string> &elems)
 {
-    stringstream ss(s+' ');
+    std::stringstream ss(s+' ');
     string item;
     while(getline(ss, item, delim))
     {

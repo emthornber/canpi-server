@@ -1,3 +1,5 @@
+#include <fstream>
+#include <sstream>
 #include "Turnout.h"
 
 Turnout::Turnout(log4cpp::Category *logger)
@@ -22,7 +24,7 @@ int Turnout::load(string fileName){
 
     logger->debug("[Turnout] Turnout opening file %s",fileName.c_str());
     try{
-        ifstream infile(fileName);
+        std::ifstream infile(fileName);
         while (infile >> key >> value){
             logger->debug("[Turnout] Adding turnout %s %d",key.c_str(),value);
             addTurnout(key,value);
@@ -46,7 +48,7 @@ int Turnout::reload(){
 }
 
 string Turnout::getStartInfo(){
-    stringstream ss;
+    std::stringstream ss;
     ss << "PTT";
     ss << DELIM_BRACET;
     ss << "Turnouts";
@@ -92,7 +94,7 @@ string Turnout::getTurnoutMsg(int tcode){
     if (getTurnoutState(tcode) == TURNOUT_STATE::THROWN){
         v = throw_code;
     }
-    stringstream ss;
+    std::stringstream ss;
     ss << "PTA";
     ss << v;
     ss << "MT+";
@@ -143,8 +145,8 @@ int Turnout::size(){
 
 void Turnout::addTurnout(string tname,int tcode){
     if (turnouts.count(tcode)==0){
-        turnouts_code.insert(pair<string,int>(tname,tcode));
-        turnouts.insert(pair<int,TURNOUT_STATE>(tcode,TURNOUT_STATE::UNKNOWN));
+        turnouts_code.insert(std::pair<string,int>(tname,tcode));
+        turnouts.insert(std::pair<int,TURNOUT_STATE>(tcode,TURNOUT_STATE::UNKNOWN));
     }
 }
 

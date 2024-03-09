@@ -1,5 +1,6 @@
 #include "tcpClient.h"
 #include <stdio.h>
+#include <stdexcept>
 
 tcpClient::tcpClient(log4cpp::Category *logger, tcpServer *server,
                      canHandler* can, int client_sock, struct sockaddr_in client_addr,
@@ -135,7 +136,7 @@ void tcpClient::run(void *param){
             try{
                 handleEDMessages(msg);
             }
-            catch(const runtime_error &ex){
+            catch(const std::runtime_error &ex){
                 logger->debug("[%d][tcpClient] Failed to process the can message\n%s",id,ex.what());
             }
         }
@@ -365,13 +366,13 @@ void tcpClient::handleEDMessages(char* msgptr){
             logger->debug("[%d] [tcpClient] Support not implemented %s",id,msg.c_str());
         }
     }
-    catch(const runtime_error &ex){
+    catch(const std::runtime_error &ex){
         logger->debug("[tcpClient] Not runtime error cought. %s",ex.what() );
-        cout << "[tcpClient] Not runtime error cought" << ex.what() << endl;
+        std::cout << "[tcpClient] Not runtime error cought" << ex.what() << std::endl;
     }
     catch(...){
         logger->debug("[tcpClient] Not runtime error cought");
-        cout << "[tcpClient] Not runtime error cought" << endl;
+        std::cout << "[tcpClient] Not runtime error cought" << std::endl;
     }
 }
 
@@ -386,7 +387,7 @@ void tcpClient::retrieveRemainingSessions(){
 
 	if (tempsessions.size() > 0){
 		for (auto ed:tempsessions){
-			sessions.insert(pair<int,edSession*>(ed->getLoco(),ed));
+			sessions.insert(std::pair<int,edSession*>(ed->getLoco(),ed));
 		}
 	}
 
@@ -469,7 +470,7 @@ void tcpClient::processCbusQueue(void *param){
                 logger->debug("[%d] [tcpClient] Tcp Client received cbus message: %s",id,buf);
                 handleCBUS(frame.data);
             }
-            catch(runtime_error &ex){
+            catch(std::runtime_error &ex){
                 logger->debug("[%d] [tcpClient] Failed to process the can message",id);
             }
             catch(...){
@@ -517,7 +518,7 @@ void tcpClient::handleCBUS(unsigned char *msg){
 
             logger->debug("[%d] [tcpClient] Ack client session created %d for loco %d :%s" ,id,session, loco, message.c_str());
             logger->debug("[%d] [tcpClient] Adding loco %d to sessions", id, loco);
-            sessions.insert(pair<int,edSession*>(loco,edsession));
+            sessions.insert(std::pair<int,edSession*>(loco,edsession));
 
 			ackEDSessionCreated(edsession, true);
 

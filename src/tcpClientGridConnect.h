@@ -31,8 +31,6 @@ The X indicates an extended CAN frame hhhh is the two byte header N or R indicat
 or remote frame, in position 6 or 10 d0 - d7 are the (up to) 8 data bytes
 */
 
-using namespace std;
-
 class tcpClientGridConnect:public Client
 {
     public:

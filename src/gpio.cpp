@@ -4,7 +4,8 @@
 #include <iostream>
 #include <sstream>
 
-using namespace std;
+using std::ifstream;
+using std::ofstream;
 
 gpio::gpio()
 {
@@ -28,7 +29,7 @@ int gpio::export_gpio()
     ofstream exportgpio(export_str.c_str()); // Open "export" file. Convert C++ string to C string. Required for all Linux pathnames
     //if (exportgpio < 0){
     if (exportgpio.fail() || exportgpio.bad()){
-        cout << " OPERATION FAILED: Unable to export GPIO"<< this->gpionum <<" ."<< endl;
+        std::cout << " OPERATION FAILED: Unable to export GPIO"<< this->gpionum <<" ."<< std::endl;
         return -1;
     }
     exportgpio << this->gpionum ; //write GPIO number to export
@@ -43,7 +44,7 @@ int gpio::unexport_gpio()
     ofstream unexportgpio(unexport_str.c_str()); //Open unexport file
     //if (unexportgpio < 0){
     if (unexportgpio.fail() || unexportgpio.bad()){
-        cout << " OPERATION FAILED: Unable to unexport GPIO"<< this->gpionum <<" ."<< endl;
+        std::cout << " OPERATION FAILED: Unable to unexport GPIO"<< this->gpionum <<" ."<< std::endl;
         return -1;
     }
 
@@ -59,7 +60,7 @@ int gpio::setdir_gpio(string dir)
     ofstream setdirgpio(setdir_str.c_str()); // open direction file for gpio
         //if (setdirgpio < 0){
         if (setdirgpio.fail() || setdirgpio.bad()){
-            cout << " OPERATION FAILED: Unable to set direction of GPIO"<< this->gpionum <<" ."<< endl;
+            std::cout << " OPERATION FAILED: Unable to set direction of GPIO"<< this->gpionum <<" ."<< std::endl;
             return -1;
         }
 
@@ -75,7 +76,7 @@ int gpio::setval_gpio(string val)
     ofstream setvalgpio(setval_str.c_str()); // open value file for gpio
         //if (setvalgpio < 0){
         if (setvalgpio.fail() || setvalgpio.bad()){
-            cout << " OPERATION FAILED: Unable to set the value of GPIO"<< this->gpionum <<" ."<< endl;
+            std::cout << " OPERATION FAILED: Unable to set the value of GPIO"<< this->gpionum <<" ."<< std::endl;
             return -1;
         }
 
@@ -87,16 +88,16 @@ int gpio::setval_gpio(string val)
 int gpio::getval_gpio(string& val){
 
     string getval_str = "/sys/class/gpio/gpio" + this->gpionum + "/value";
-    //cout << "Reading the value of " << getval_str << endl;
+    //std::cout << "Reading the value of " << getval_str << std::endl;
     ifstream getvalgpio(getval_str.c_str());// open value file for gpio
     //if (getvalgpio < 0){
     if (getvalgpio.fail() || getvalgpio.bad()){
-        cout << " OPERATION FAILED: Unable to get value of GPIO"<< this->gpionum <<" ."<< endl;
+        std::cout << " OPERATION FAILED: Unable to get value of GPIO"<< this->gpionum <<" ."<< std::endl;
         return -1;
     }
 
     getvalgpio >> val ;  //read gpio value
-   // cout << "GPIO value is " << val << endl;
+   // std::cout << "GPIO value is " << val << std::endl;
     if(val != "0")
         val = "1";
     else

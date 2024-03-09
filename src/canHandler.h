@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <queue>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <ctime>
 #include <algorithm>
@@ -32,7 +33,10 @@
 #define BLINK_INTERVAL 300 //time in milliseconds seconds
 #define CBUS_KEEP_ALIVE  4000 //ms
 
-using namespace std;
+using std::string;
+using std::stringstream;
+using std::vector;
+
 class tcpServer;
 
 class canHandler

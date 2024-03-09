@@ -21,8 +21,8 @@ class sessionHandler
     public:
         sessionHandler(log4cpp::Category *logger,nodeConfigurator *config, canHandler *can);
         virtual ~sessionHandler();
-        unsigned int retrieveAllEDSession(int client_id, string edname, long client_ip, vector<edSession*> *edsessions);
-    	edSession* createEDSession(int client_id, string edname, long client_ip);
+        unsigned int retrieveAllEDSession(int client_id, std::string edname, long client_ip, std::vector<edSession*> *edsessions);
+    	edSession* createEDSession(int client_id, std::string edname, long client_ip);
         bool deleteEDSession(int sessionuid);
         bool deleteAllEDSessions(int client_id);
         void start();

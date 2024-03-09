@@ -9,7 +9,8 @@
 #include "utils.h"
 #include "msgdata.h"
 
-using namespace std;
+using std::map;
+using std::string;
 
 class Turnout
 {

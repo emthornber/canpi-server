@@ -40,8 +40,6 @@
 #include "nodeConfigurator.h"
 #include "sessionHandler.h"
 
-using namespace std;
-// using namespace libconfig;
 int running = 1;
 
 void sigterm(int signo)

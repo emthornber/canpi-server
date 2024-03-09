@@ -4,11 +4,13 @@
 #include <string>
 #include <log4cpp/Category.hh>
 #include <time.h>
+#include <vector>
 
 #include "utils.h"
 #include "nodeConfigurator.h"
 
-using namespace std;
+using std::string ;
+using std::vector ;
 
 class edSession
 {

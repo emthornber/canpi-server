@@ -180,7 +180,7 @@ void tcpClientGridConnect::canMessage(int canid, const char *msg, int dlc) {
             logger->warn("Bytes written does not match the request. Request size %d, written %d", s, nbytes);
         }
     }
-    catch (runtime_error &ex) {
+    catch (std::runtime_error &ex) {
         logger->debug("[%d] Grid client failed to process the can message", id);
     }
     catch (...) {
@@ -209,7 +209,7 @@ void tcpClientGridConnect::run(void *param) {
                 pthread_mutex_unlock(&m_mutex_in);
 
             }
-            catch (const runtime_error &ex) {
+            catch (const std::runtime_error &ex) {
                 logger->debug("[%d] Grid client failed to process the client grid message\n%s", id, ex.what());
             }
             catch (...) {
@@ -369,7 +369,7 @@ void tcpClientGridConnect::handleClientGridMessage(string msg) {
 
 vector<byte> tcpClientGridConnect::getBytes(string hex_chars, vector<byte> *bytes) {
 
-    //put spaces between each pair of hex
+    //put spaces between each std::pair of hex
 
     string data;
     stringstream ss;
@@ -387,7 +387,7 @@ vector<byte> tcpClientGridConnect::getBytes(string hex_chars, vector<byte> *byte
     }
     logger->debug("Hexbytes data %s", data.c_str());
 
-    istringstream hex_chars_stream(data);
+    std::istringstream hex_chars_stream(data);
     unsigned int c;
     while (hex_chars_stream >> std::hex >> c) {
         bytes->push_back((byte) (c & 0xff));

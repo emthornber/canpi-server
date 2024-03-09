@@ -23,7 +23,7 @@
 #define ED_KEEP_ALIVE  9000 //ms
 #define ST  30 //ms
 
-using namespace std;
+using std::regex;
 
 class tcpClient : public Client
 {

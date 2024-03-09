@@ -48,10 +48,8 @@
 #define TAG_SHUTDOWN_CODE "shutdown_code"
 #define TAG_ED_SERVER     "edserver"
 
-using namespace std;
-
 //byte definition
-typedef unsigned char byte;
+using byte = uint8_t;
 
 enum CLIENT_TYPE {ED,GRID,CBUS};
 enum TURNOUT_STATE {CLOSED,THROWN,UNKNOWN};

@@ -1,4 +1,10 @@
+#include <utility>
+
 #include "nodeConfigurator.h"
+
+using std::ifstream;
+using std::ofstream;
+using std::stringstream;
 
 nodeConfigurator::nodeConfigurator(string file,log4cpp::Category *logger)
 {
@@ -40,11 +46,11 @@ void nodeConfigurator::setNotQuotedConfigKeys(){
 */
 void nodeConfigurator::printMemoryNVs(){
     int i;
-    cout << "NVs: ";
+    std::cout << "NVs: ";
     for (i=0;i<NVS_SIZE;i++){
-        cout << int(NV[i]) << " ";
+        std::cout << int(NV[i]) << " ";
     }
-    cout << endl;
+    std::cout << std::endl;
 }
 
 void nodeConfigurator::setNodeParams(byte p1,byte p2, byte p3,byte p4,byte p5, byte p6, byte p7, byte p8, byte p9, byte p10){
@@ -311,7 +317,7 @@ byte nodeConfigurator::setNV(int idx,byte val){
 }
 
 void nodeConfigurator::loadParamsToMemory(){
-    cout << "Loading NVs to memory" << endl;
+    std::cout << "Loading NVs to memory" << std::endl;
     loadParam1();
     loadParamsInt2Bytes(getTcpPort(), P_TCP_PORT);
     loadParamsInt2Bytes(getcanGridPort(), P_GRID_TCP_PORT);
@@ -329,11 +335,11 @@ void nodeConfigurator::loadParamsToMemory(){
 void nodeConfigurator::loadParam1(){
     byte p1 = 0;
     if (getAPMode()){
-        cout << "AP Mode set to true" << endl;
+        std::cout << "AP Mode set to true" << std::endl;
         p1 = 1;
     }
     if (isCanGridEnabled()){
-        cout << "Can grid set to true" << endl;
+        std::cout << "Can grid set to true" << std::endl;
         p1 = p1 | 0b00000010;
     }
     string l = getLogLevel();
@@ -376,7 +382,7 @@ void nodeConfigurator::loadParamsInt2Bytes(int value, unsigned int idx){
     NV[idx+1] = Hb;
     NV[idx] = Lb;
 
-    cout << "P int " << value << " " << int(NV[idx]) << " " << int(NV[idx+1]) << endl;
+    std::cout << "P int " << value << " " << int(NV[idx]) << " " << int(NV[idx+1]) << std::endl;
 }
 
 void nodeConfigurator::loadParamsString(string value, unsigned int idx, unsigned int maxsize){
@@ -389,7 +395,7 @@ void nodeConfigurator::loadParamsString(string value, unsigned int idx, unsigned
 
     for (i = 0;i < ssize; i++){
         NV[idx + i] = value.c_str()[i];
-        cout <<  NV[idx + i] << " ";
+        std::cout <<  NV[idx + i] << " ";
     }
 
     //fill the rest with 0
@@ -398,14 +404,14 @@ void nodeConfigurator::loadParamsString(string value, unsigned int idx, unsigned
             NV[idx + i] = 0;
         }
     }
-    cout << endl;
+    std::cout << std::endl;
 }
 
 
 bool nodeConfigurator::saveConfig(){
 
-    map<string, string>::iterator it;
-    ofstream f (configFile, ios::trunc);
+    std::map<string, string>::iterator it;
+    ofstream f (configFile, std::ios::trunc);
     stringstream ss;
 
     if (!f.is_open()){
@@ -421,9 +427,9 @@ bool nodeConfigurator::saveConfig(){
         sit = find (not_quoted_config.begin(), not_quoted_config.end(), it->first);
         if (sit == not_quoted_config.end()){
             //quoted data
-            f << it->first << "=" << "\"" << it->second <<  "\"" << endl;
+            f << it->first << "=" << "\"" << it->second <<  "\"" << std::endl;
         }
-        else f << it->first << "=" << it->second << endl;
+        else f << it->first << "=" << it->second << std::endl;
         if (logger != nullptr){
             if (logger->getPriority() == log4cpp::Priority::DEBUG){
                 ss.clear();ss.str("");
@@ -451,7 +457,7 @@ string nodeConfigurator::getStringConfig(string key)
     if (config.size() == 0){
         return ret;
     }
-    map<string,string>::iterator it;
+    std::map<string,string>::iterator it;
     it = config.find(key);
     if (it == config.end()){
         return ret;
@@ -466,7 +472,7 @@ int nodeConfigurator::getIntConfig(string key)
 
     if (config.size() == 0) return ret;
 
-    map<string,string>::iterator it;
+    std::map<string,string>::iterator it;
     it = config.find(key);
 
     if (it == config.end()) return ret;
@@ -476,7 +482,7 @@ int nodeConfigurator::getIntConfig(string key)
     }
     catch(...){
         if (logger != nullptr) logger->error("Failed to convert %s to int", it->second.c_str());
-        else cout << "Failed to convert " << it->second.c_str() << " to int" << endl;
+        else std::cout << "Failed to convert " << it->second.c_str() << " to int" << std::endl;
     }
     return ret;
 
@@ -665,12 +671,12 @@ int nodeConfigurator::getTcpPort(){
             }
             catch(...){
                 if (logger != nullptr) logger->error("Failed to convert %s to int", r.c_str());
-                else cout << "Failed to convert " << r << " to int" << endl;
+                else std::cout << "Failed to convert " << r << " to int" << std::endl;
             }
         }
         else{
             if (logger != nullptr) logger->error("Failed to get tcp port. Default is 30");
-            else cout << "Failed to get tcp port. Default is 30" << endl;
+            else std::cout << "Failed to get tcp port. Default is 30" << std::endl;
         }
         ret = 5555;
     }
@@ -689,12 +695,12 @@ int nodeConfigurator::getcanGridPort(){
             }
             catch(...){
                 if (logger != nullptr) logger->error("Failed to convert %s to int",  r.c_str());
-                else cout << "Failed to convert " << r << " to int" << endl;
+                else std::cout << "Failed to convert " << r << " to int" << std::endl;
             }
         }
         else{
             if (logger != nullptr) logger->error("Failed to get the grid tcp port. Default is 31");
-            else cout << "Failed to get the grid tcp port. Default is 31" << endl;
+            else std::cout << "Failed to get the grid tcp port. Default is 31" << std::endl;
         }
         ret = 5550;
     }
@@ -721,12 +727,12 @@ int nodeConfigurator::getCanID(bool fresh/*=true*/){
             }
             catch(...){
                 if (logger != nullptr) logger->error("Failed to convert %s to int",  r.c_str());
-                else cout << "Failed to convert " << r << " to int" << endl;
+                else std::cout << "Failed to convert " << r << " to int" << std::endl;
             }
         }
         else{
             if (logger != nullptr) logger->error("Failed to get the canid. Default is %d",DEFAULT_CANID);
-            else cout << "Failed to get the canid. Default is " << DEFAULT_CANID << endl;
+            else std::cout << "Failed to get the canid. Default is " << DEFAULT_CANID << std::endl;
         }
         ret = DEFAULT_CANID;
     }
@@ -753,12 +759,12 @@ int nodeConfigurator::getNodeNumber(bool fresh/*=true*/){
             }
             catch(...){
                 if (logger != nullptr) logger->error("Failed to convert %s to int",  r.c_str());
-                else cout << "Failed to convert " << r << " to int" << endl;
+                else std::cout << "Failed to convert " << r << " to int" << std::endl;
             }
         }
         else{
             if (logger != nullptr) logger->error("Failed to get the node_number. Default is %d",DEFAULT_NN);
-            else cout << "Failed to get the node_number. Default is " <<  DEFAULT_NN << endl;
+            else std::cout << "Failed to get the node_number. Default is " <<  DEFAULT_NN << std::endl;
         }
         ret = DEFAULT_NN;
     }
@@ -777,7 +783,7 @@ bool nodeConfigurator::getAPMode(){
     ret = getStringConfig(TAG_AP_MODE);
     if (ret.empty()){
         if (logger != nullptr) logger->error("Failed to get ap_mode . Default is false");
-        else cout << "Failed to get ap_mode . Default is false" << endl;
+        else std::cout << "Failed to get ap_mode . Default is false" << std::endl;
         return false;
     }
     if ((ret.compare("true") == 0) | (ret.compare("TRUE") == 0) | (ret.compare("True") == 0)){
@@ -800,7 +806,7 @@ bool nodeConfigurator::getEdserver(){
     ret = getStringConfig(TAG_ED_SERVER);
     if (ret.empty()){
         if (logger != nullptr) logger->error("Failed to get edserver . Default is true");
-        else cout << "Failed to get edserver . Default is true" << endl;
+        else std::cout << "Failed to get edserver . Default is true" << std::endl;
         return true;
     }
     if ((ret.compare("true") == 0) | (ret.compare("TRUE") == 0) | (ret.compare("True") == 0)){
@@ -823,7 +829,7 @@ bool nodeConfigurator::getAPNoPassword(){
     ret = getStringConfig(TAG_NO_PASSWD);
     if (ret.empty()){
         if (logger != nullptr) logger->error("Failed to get ap no password. Default is false");
-        else cout << "Failed to get ap no password. Default is false" << endl;
+        else std::cout << "Failed to get ap no password. Default is false" << std::endl;
         return false;
     }
     if ((ret.compare("true") == 0) | (ret.compare("TRUE") == 0) | (ret.compare("True") == 0)){
@@ -846,7 +852,7 @@ bool nodeConfigurator::getCreateLogfile(){
     ret = getStringConfig(TAG_CREATE_LOGFILE);
     if (ret.empty()){
         if (logger != nullptr) logger->error("Failed to get create log tag. Default is false");
-        else cout << "Failed to get create log tag. Default is false" << endl;
+        else std::cout << "Failed to get create log tag. Default is false" << std::endl;
         return false;
     }
     if ((ret.compare("true") == 0) | (ret.compare("TRUE") == 0) | (ret.compare("True") == 0)){
@@ -869,7 +875,7 @@ bool nodeConfigurator::isCanGridEnabled(){
     ret = getStringConfig(TAG_CAN_GRID);
     if (ret.empty()){
         if (logger != nullptr) logger->error("Failed to get create log tag. Default is false");
-        else cout << "Failed to get create log tag. Default is false" << endl;
+        else std::cout << "Failed to get create log tag. Default is false" << std::endl;
         return false;
     }
     if ((ret.compare("true") == 0) | (ret.compare("TRUE") == 0) | (ret.compare("True") == 0)){
@@ -943,7 +949,7 @@ string nodeConfigurator::getLogLevel(){
     ret = getStringConfig(TAG_LOGLEVEL);
     if (ret.empty()){
         if (logger != nullptr) logger->error("Failed to get log level name. Default is WARN");
-        else cout << "Failed to get log level name. Default is WARN" << endl;
+        else std::cout << "Failed to get log level name. Default is WARN" << std::endl;
         ret = "WARN";
     }
     return ret;
@@ -959,7 +965,7 @@ string nodeConfigurator::getLogFile(){
     ret = getStringConfig(TAG_LOGFILE);
     if (ret.empty()){
         if (logger != nullptr) logger->error("Failed to get log file name. Default is canpi.log");
-        else cout << "Failed to get log file name. Default is canpi.log" << endl;
+        else std::cout << "Failed to get log file name. Default is canpi.log" << std::endl;
         ret = "canpi.log";
     }
     return ret;
@@ -990,7 +996,7 @@ bool nodeConfigurator::getLogAppend(){
     ret = getStringConfig(TAG_LOGAPPEND);
     if (ret.empty()){
         if (logger != nullptr) logger->error("Failed to get logappend . Default is false");
-        else cout << "Failed to get logappend . Default is false" << endl;
+        else std::cout << "Failed to get logappend . Default is false" << std::endl;
         return false;
     }
     if ((ret.compare("true") == 0) | (ret.compare("TRUE") == 0) | (ret.compare("True") == 0)){
@@ -1014,7 +1020,7 @@ bool nodeConfigurator::getLogConsole(){
     ret = getStringConfig(TAG_LOGCONSOLE);
     if (ret.empty()){
         if (logger != nullptr) logger->error("Failed to get log console . Default is false");
-        else cout << "Failed to get log console . Default is false" << endl;
+        else std::cout << "Failed to get log console . Default is false" << std::endl;
         return false;
     }
     if ((ret.compare("true") == 0) | (ret.compare("TRUE") == 0) | (ret.compare("True") == 0)){
@@ -1034,7 +1040,7 @@ string nodeConfigurator::getTurnoutFile(bool fresh/*=true*/){
     ret = getStringConfig(TAG_TURNOUT);
     if (ret.empty()){
         if (logger != nullptr) logger->error("Failed to get turnout file name. Defaul is turnout.txt");
-        else cout << "Failed to get turnout file name. Defaul is turnout.txt" << endl;
+        else std::cout << "Failed to get turnout file name. Defaul is turnout.txt" << std::endl;
         ret = "turnout.txt";
     }
     return ret;
@@ -1050,7 +1056,7 @@ string nodeConfigurator::getCanDevice(){
     ret = getStringConfig(TAG_CANDEVICE);
     if (ret.empty()){
         if (logger != nullptr) logger->error("Failed to get the can device. Default is can0");
-        else cout << "Failed to get the can device. Default is can0" << endl;
+        else std::cout << "Failed to get the can device. Default is can0" << std::endl;
         ret = "can0";
     }
     return ret;
@@ -1068,12 +1074,12 @@ int nodeConfigurator::getApChannel(){
             }
             catch(...){
                 if (logger != nullptr) logger->error("Failed to convert %s to int",  r.c_str());
-                else  cout << "Failed to convert " << r << " to int" << endl;
+                else  std::cout << "Failed to convert " << r << " to int" << std::endl;
             }
         }
         else{
             if (logger != nullptr) logger->error("Failed to get the ap_channel. Default is 6");
-            else cout << "Failed to get the ap_channel. Default is 6" << endl;
+            else std::cout << "Failed to get the ap_channel. Default is 6" << std::endl;
         }
         ret = 6;
     }
@@ -1099,12 +1105,12 @@ int nodeConfigurator::getStartEventID(){
             }
             catch(...){
                 if (logger != nullptr) logger->error("Failed to convert %s to int",  r.c_str());
-                else  cout << "Failed to convert " << r << " to int" << endl;
+                else  std::cout << "Failed to convert " << r << " to int" << std::endl;
             }
         }
         else{
             if (logger != nullptr) logger->error("Failed to get the start event id. Default is 1");
-            else cout << "Failed to get the start event id. Default is 1" << endl;
+            else std::cout << "Failed to get the start event id. Default is 1" << std::endl;
         }
         ret = 1;
     }
@@ -1138,13 +1144,13 @@ int nodeConfigurator::getPB(){
             }
             catch(...){
                 if (logger != nullptr) logger->error("Failed to convert %s to int",  r.c_str());
-                else cout << "Failed to convert " << r << " to int" << endl;
+                else std::cout << "Failed to convert " << r << " to int" << std::endl;
                 ret = 17;
             }
         }
         else{
             if (logger != nullptr) logger->error("Failed to get the button_pin. Default is 17");
-            else cout << "Failed to get the button_pin. Default is 17" << endl;
+            else std::cout << "Failed to get the button_pin. Default is 17" << std::endl;
             ret = 17;
         }
 
@@ -1171,13 +1177,13 @@ int nodeConfigurator::getGreenLed(){
             }
             catch(...){
                 if (logger != nullptr) logger->error("Failed to convert %s to int",  r.c_str());
-                else cout << "Failed to convert " << r << " to int" << endl;
+                else std::cout << "Failed to convert " << r << " to int" << std::endl;
                 ret = 24;
             }
         }
         else{
             if (logger != nullptr) logger->error("Failed to get the green_led_pin. Default is 24");
-            else cout << "Failed to get the green_led_pin. Default is 24" << endl;
+            else std::cout << "Failed to get the green_led_pin. Default is 24" << std::endl;
             ret = 24;
         }
     }
@@ -1203,13 +1209,13 @@ int nodeConfigurator::getYellowLed(){
             }
             catch(...){
                 if (logger != nullptr) logger->error("Failed to convert %s to int",  r.c_str());
-                else cout << "Failed to convert " << r << " to int" << endl;
+                else std::cout << "Failed to convert " << r << " to int" << std::endl;
                 ret = 23;
             }
         }
         else{
             if (logger != nullptr) logger->error( "Failed to get the yellow_led_pin. Default is 23");
-            else cout << "Failed to get the yellow_led_pin. Default is 23" << endl;
+            else std::cout << "Failed to get the yellow_led_pin. Default is 23" << std::endl;
             ret = 23;
         }
     }
@@ -1235,12 +1241,12 @@ int nodeConfigurator::getShutdownCode(){
             }
             catch(...){
                 if (logger != nullptr) logger->error("Failed to convert %s to int",  r.c_str());
-                else  cout << "Failed to convert " << r << " to int" << endl;
+                else  std::cout << "Failed to convert " << r << " to int" << std::endl;
             }
         }
         else{
             if (logger != nullptr) logger->error("Failed to get the shutdown code. Default is -1");
-            else cout << "Failed to get the shutdown code. Default is -1" << endl;
+            else std::cout << "Failed to get the shutdown code. Default is -1" << std::endl;
         }
         ret = -1;
     }
@@ -1263,13 +1269,13 @@ int nodeConfigurator::getNodeMode(){
             }
             catch(...){
                 if (logger != nullptr) logger->error("Node Mode. Failed to convert %s to int",  r.c_str());
-                else cout << "Node Mode. Failed to convert " << r << " to int. Default is 0 SLIM" << endl;
+                else std::cout << "Node Mode. Failed to convert " << r << " to int. Default is 0 SLIM" << std::endl;
                 ret = MTYP_SLIM;
             }
         }
         else{
             if (logger != nullptr) logger->error( "Node Mode.Failed to get the node mode. Default is 0 SLIM");
-            else cout << "Node Mode. Failed to get the node_mode. Default is 0 SLIM" << endl;
+            else std::cout << "Node Mode. Failed to get the node_mode. Default is 0 SLIM" << std::endl;
             ret = MTYP_SLIM;
         }
     }
@@ -1297,13 +1303,13 @@ int nodeConfigurator::getOrphanTimeout(){
             }
             catch(...){
                 if (logger != nullptr) logger->error("Orphan timeout. Failed to convert %s to int",  r.c_str());
-                else cout << "Orphan timeout. Failed to convert " << r << " to int" << endl;
+                else std::cout << "Orphan timeout. Failed to convert " << r << " to int" << std::endl;
                 ret = 30;//seconds
             }
         }
         else{
             if (logger != nullptr) logger->error( "Orphan timeout.Failed to get the orphan timeout. Default is 30 s");
-            else cout << "Orphan timeout. Failed to get the the orphan timeout. Default is 30 s" << endl;
+            else std::cout << "Orphan timeout. Failed to get the the orphan timeout. Default is 30 s" << std::endl;
             ret = 30;//seconds
         }
     }
@@ -1337,8 +1343,8 @@ string nodeConfigurator::cleanString(string val){
    return s;
 }
 
-pair <string,string> nodeConfigurator::getpair(string val){
-   pair <string,string> ret;
+std::pair <string,string> nodeConfigurator::getpair(string val){
+   std::pair <string,string> ret;
    string key;
    string value;
    string s;
@@ -1357,21 +1363,21 @@ pair <string,string> nodeConfigurator::getpair(string val){
 bool nodeConfigurator::loadConfig(){
     ifstream myfile;
     string line;
-    pair<string,string> p;
+    std::pair<string,string> p;
 
-    myfile.open (configFile,ios::in);
+    myfile.open (configFile,std::ios::in);
     if (myfile.is_open ()){
         config.clear();
         while ( getline (myfile, line) ){
             p = getpair(line);
-            if ((get<0>(p)) != "0") config.insert(p);
+            if ((std::get<0>(p)) != "0") config.insert(p);
         }
         myfile.close();
         return true;
     }
     else{
        if (logger != nullptr) logger->error( "Failed to open the config file");
-       else cout << "Failed to open the config file" << endl;
+       else std::cout << "Failed to open the config file" << std::endl;
        return false;
     }
 }
@@ -1392,15 +1398,15 @@ bool nodeConfigurator::setNewPair(string key,string value,bool quoted){
 
     if (!existConfigEntry(key)){
         if (logger != nullptr) logger->debug("[nodeConfigurator] Adding new pair %s %s quoted %d", key.c_str(), ss.c_str(), quoted);
-        else cout << "[nodeConfigurator] Adding new pair " << key << " " << ss << " quoted " << quoted <<  endl;
+        else std::cout << "[nodeConfigurator] Adding new pair " << key << " " << ss << " quoted " << quoted <<  std::endl;
 
-        pair<string,string> p;
+        std::pair<string,string> p;
         p = std::make_pair(key, ss);
         config.insert(p);
     }
     else{
         if (logger != nullptr) logger->debug("[nodeConfigurator] Updating new pair %s %s quoted %d", key.c_str(), ss.c_str(), quoted);
-        else cout << "[nodeConfigurator] Updating new pair " << key << " " << ss << " quoted " << quoted <<  endl;
+        else std::cout << "[nodeConfigurator] Updating new pair " << key << " " << ss << " quoted " << quoted <<  std::endl;
         config[key] = ss;
     }
     return saveConfig();
@@ -1408,7 +1414,7 @@ bool nodeConfigurator::setNewPair(string key,string value,bool quoted){
 
 bool nodeConfigurator::existConfigEntry(string key){
     if (logger != nullptr) logger->debug("[nodeConfigurator] Checking config key %s", key.c_str());
-    else cout << "[nodeConfigurator] Checking config key " << key << endl;
+    else std::cout << "[nodeConfigurator] Checking config key " << key << std::endl;
 
     if (config.find(key) == config.end()) return false;
     return true;
