@@ -21,7 +21,7 @@ sessionHandler::~sessionHandler()
 
 
 edSession* sessionHandler::createEDSession(int client_id, string edname, long client_ip){
-    logger->debug("[sessionHandler] Allocate a new session for ed %s %d and ip %d", edname.c_str(), client_id, client_ip);
+    logger->debug("[sessionHandler] Allocate a new session for ed %s %d and ip %u", edname.c_str(), client_id, client_ip);
     //make the new sessions thread safe
     pthread_mutex_lock(&m_mutex_in);
 
@@ -35,8 +35,8 @@ edSession* sessionHandler::createEDSession(int client_id, string edname, long cl
 	ed->setOrphan(false);
     sessions.push_back(ed);
 
-    pthread_mutex_unlock(&m_mutex_in);
     pthread_cond_signal(&m_condv_in);
+    pthread_mutex_unlock(&m_mutex_in);
 
     return ed;
 }
@@ -55,8 +55,8 @@ bool sessionHandler::deleteEDSession(int sessionuid){
             delete (ed);
             sessions.erase(it);
 
-            pthread_mutex_unlock(&m_mutex_in);
             pthread_cond_signal(&m_condv_in);
+            pthread_mutex_unlock(&m_mutex_in);
             return true;
         }
         it++;
@@ -70,12 +70,12 @@ bool sessionHandler::deleteEDSession(int sessionuid){
 unsigned int sessionHandler::retrieveAllEDSession(int client_id, string edname, long client_ip, vector<edSession*> *edsessions){
     unsigned int i=0;
 	edSession *ed;
-    logger->debug("[sessionHandler] Checking for all %d existing sessions for ed %s %d and ip %d",sessions.size(), edname.c_str(), client_id, client_ip);
+    logger->debug("[sessionHandler] Checking for all %d existing sessions for ed %s %d and ip %u",sessions.size(), edname.c_str(), client_id, client_ip);
 	std::vector<edSession*>::iterator it = sessions.begin();
     while (it != sessions.end()){
 		ed = *it;
         //if (sessions[i]->getClientIP() == client_ip && sessions[i]->getEdName() == edname){
-		logger->debug("[sessionHandler] Comparing ip %d and %d",ed->getClientIP(), client_ip);
+		logger->debug("[sessionHandler] Comparing ip %u and %u",ed->getClientIP(), client_ip);
 		if (ed->getClientIP() == client_ip){
             ed->setOrphan(false);
             logger->debug("[sessionHandler] Retrieved session for loco %d", ed->getLoco());
@@ -85,7 +85,7 @@ unsigned int sessionHandler::retrieveAllEDSession(int client_id, string edname, 
 		it++;
     }
 
-	logger->debug("[sessionHandler] Found %d existing sessions for %s %d", i, edname.c_str(), client_id);
+	logger->debug("[sessionHandler] Found %d existing sessions for %s %u", i, edname.c_str(), client_id);
 
     return i;
 }
@@ -107,8 +107,8 @@ bool sessionHandler::deleteAllEDSessions(int client_id){
             sessions.erase(it);
 			found = true;
 
-			pthread_mutex_unlock(&m_mutex_in);
             pthread_cond_signal(&m_condv_in);
+			pthread_mutex_unlock(&m_mutex_in);
         }
         it++;
     }

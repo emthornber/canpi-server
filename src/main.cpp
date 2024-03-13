@@ -88,9 +88,9 @@ int main()
     // default config
     //***************
     log4cpp::Priority::PriorityLevel loglevel = log4cpp::Priority::DEBUG;
-    string logfile = get_cps_home() + "canpi.log";
+    string logfile = get_cps_home() + "/canpi.log";
     string configfile = get_cps_cfg();
-    string turnoutfile = get_cps_home() + "turnout.txt";
+    string turnoutfile = get_cps_home() + "/turnout.txt";
     int port = 5555;
     string candevice = "can0";
     bool append = false;

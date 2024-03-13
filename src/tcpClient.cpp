@@ -776,19 +776,20 @@ void tcpClient::releaseActualSession(){
 
 void tcpClient::deleteUnsetSessions(){
 	logger->debug("[%d] [tcpClient] Deleting all unset sessions",id);
+    std::vector<int> loco_numbers;
 
-	std::map<int,edSession*>::iterator it = this->sessions.begin();
-
-	while(it != this->sessions.end())
+	std::map<int,edSession*>::iterator it;
+	for (it=this->sessions.begin(); it!=this->sessions.end(); ++it)
 	{
 		if (!it->second->isSessionSet()){
 			logger->info("[%d] [tcpClient] Deleting unset session %d" ,id, it->second->getSessionUid());
 			session_handler->deleteEDSession(it->second->getSessionUid());
-            //delete(it->second);
-            sessions.erase(it);
+            loco_numbers.push_back(it->first);
 		}
-		it++;
 	}
+    std::vector<int>::size_type sz = loco_numbers.size();
+    for (unsigned i=0; i<sz; i++)
+        sessions.erase(loco_numbers[i]);
 }
 
 void tcpClient::handleDirection(string message){
