@@ -66,9 +66,9 @@
   "create_log_file": {
     "prompt": "",
     "tooltip": "",
-    "current": "0",
-    "default": "0",
-    "format": "[0-9]{1}",
+    "current": "Y",
+    "default": "Y",
+    "format": "[Yy]|[Nn]",
     "action": "Hide"
   },
   "fn_momentary": {
@@ -112,11 +112,19 @@
     "action": "Display"
   },
   "logappend": {
-    "prompt": "",
-    "tooltip": "",
-    "current": "0",
-    "default": "0",
-    "format": "[0-9]{1}",
+    "prompt": "Append to Log File",
+    "tooltip": "Add new messages to end of current log file",
+    "current": "Y",
+    "default": "Y",
+    "format": "[Yy]|[Nn]",
+    "action": "Hide"
+  },
+  "log_console": {
+    "prompt": "Log to Console",
+    "tooltip": "Output the logging messages to the console",
+    "current": "N",
+    "default": "N",
+    "format": "[Yy]|[Nn]",
     "action": "Hide"
   },
   "logfile": {
@@ -136,16 +144,16 @@
     "action": "Edit"
   },
   "service_name": {
-    "prompt": "",
-    "tooltip": "",
-    "current": "0",
-    "default": "0",
+    "prompt": "Throttle Service Name",
+    "tooltip": "Name of the Engine Driver throttle service",
+    "current": "TestLayout",
+    "default": "TestLayout",
     "format": "[0-9]{1}",
     "action": "Hide"
   },
   "tcpport": {
     "prompt": "Throttle Service port",
-    "tooltip": "TCP port the Engine driver throttle service listens on",
+    "tooltip": "TCP port the Engine Driver throttle service listens on",
     "current": "5555",
     "default": "5555",
     "format": "[0-9]{4}",

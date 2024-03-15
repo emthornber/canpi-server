@@ -243,6 +243,7 @@ class nodeConfigurator
         string removeChar(string val,char c);
         string cleanString(string val);
         std::pair <string,string> getpair(string val);
+        bool AttrIsYes(string val);
 
 
 };

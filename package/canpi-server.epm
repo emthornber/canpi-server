@@ -46,7 +46,7 @@ $candev=/proc/device-tree/can0_osc
 %license LICENSE
 %readme README.md
 %description Interfaces MERG-CANBUS protocol with JMRI Engine Driver application.
-%version 1.1.0beta2
+%version 1.1.0beta3
 
 %requires avahi-daemon
 %requires avahi-utils
@@ -81,8 +81,8 @@ f 644 root root ${ifdir}/80-can.network      ${cfgdir}/80-can.network
 f 644 root root ${canpi}/canpi.cfg           ${cfgdir}/canpi.cfg
 f 644 root root ${canpi}/canpi.json          ${cfgdir}/canpi-config-defn.json
 f 644 root root ${canpi}/multiple.service.in ${cfgdir}/multiple.service.in
-f 644 root root ${canpi}/turnout.txt            ${cfgdir}/turnout.txt
-f 644 root root /etc/logrotate.d/canpid         ${cfgdir}/canpid.logrotate
+f 644 root root ${canpi}/turnout.txt         ${cfgdir}/turnout.txt
+f 644 root root /etc/logrotate.d/canpid      ${cfgdir}/canpid.logrotate
 
 %literal(config) <<EOF
 # Source debconf library.
@@ -162,6 +162,10 @@ EOF
 %preremove <<EOF
 ${SCTL} stop ${CANPI}
 ${SCTL} disable ${CANPI}
+
+# Clean up log files
+rm -f ${logdir}/*
+rm -f ${canpi}/*.log
 
 EOF
 

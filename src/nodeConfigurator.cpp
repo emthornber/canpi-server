@@ -1,5 +1,4 @@
 #include <utility>
-
 #include "nodeConfigurator.h"
 
 using std::ifstream;
@@ -778,6 +777,14 @@ bool nodeConfigurator::setNodeNumber(int val){
     return saveConfig();
 }
 
+bool nodeConfigurator::AttrIsYes(string val){
+    // Convert attribute value string to lowercase
+    std::transform(val.begin(), val.end(), val.begin(), ::tolower);
+    if (val.compare("y") == 0)
+        return true;
+    return false;
+}
+
 bool nodeConfigurator::getAPMode(){
     string ret;
     ret = getStringConfig(TAG_AP_MODE);
@@ -786,15 +793,15 @@ bool nodeConfigurator::getAPMode(){
         else std::cout << "Failed to get ap_mode . Default is false" << std::endl;
         return false;
     }
-    if ((ret.compare("true") == 0) | (ret.compare("TRUE") == 0) | (ret.compare("True") == 0)){
-        return true;
-    }
-    return false;
+    // if ((ret.compare("true") == 0) | (ret.compare("TRUE") == 0) | (ret.compare("True") == 0)){
+    //    return true;
+    // }
+    return AttrIsYes(ret);
 }
 bool nodeConfigurator::setAPMode(bool apmode){
     string r;
-    if (apmode) r = "True";
-    else r = "False";
+    if (apmode) r = "Y";
+    else r = "N";
 
     if (config.find(TAG_AP_MODE) == config.end()) return false;
     config[TAG_AP_MODE] = r;
@@ -809,15 +816,12 @@ bool nodeConfigurator::getEdserver(){
         else std::cout << "Failed to get edserver . Default is true" << std::endl;
         return true;
     }
-    if ((ret.compare("true") == 0) | (ret.compare("TRUE") == 0) | (ret.compare("True") == 0)){
-        return true;
-    }
-    return false;
+    return AttrIsYes(ret);
 }
 bool nodeConfigurator::setEdserver(bool edserver){
     string r;
-    if (edserver) r = "True";
-    else r = "False";
+    if (edserver) r = "Y";
+    else r = "N";
 
     if (config.find(TAG_ED_SERVER) == config.end()) return false;
     config[TAG_ED_SERVER] = r;
@@ -832,15 +836,12 @@ bool nodeConfigurator::getAPNoPassword(){
         else std::cout << "Failed to get ap no password. Default is false" << std::endl;
         return false;
     }
-    if ((ret.compare("true") == 0) | (ret.compare("TRUE") == 0) | (ret.compare("True") == 0)){
-        return true;
-    }
-    return false;
+    return AttrIsYes(ret);
 }
 bool nodeConfigurator::setAPNoPassword(bool mode){
     string r;
-    if (mode) r = "True";
-    else r = "False";
+    if (mode) r = "Y";
+    else r = "N";
 
     if (config.find(TAG_NO_PASSWD) == config.end()) return false;
     config[TAG_NO_PASSWD] = r;
@@ -855,15 +856,12 @@ bool nodeConfigurator::getCreateLogfile(){
         else std::cout << "Failed to get create log tag. Default is false" << std::endl;
         return false;
     }
-    if ((ret.compare("true") == 0) | (ret.compare("TRUE") == 0) | (ret.compare("True") == 0)){
-        return true;
-    }
-    return false;
+    return AttrIsYes(ret);
 }
 bool nodeConfigurator::setCreateLogfile(bool mode){
     string r;
-    if (mode) r = "True";
-    else r = "False";
+    if (mode) r = "Y";
+    else r = "N";
 
     if (config.find(TAG_CREATE_LOGFILE) == config.end()) return false;
     config[TAG_CREATE_LOGFILE] = r;
@@ -878,15 +876,12 @@ bool nodeConfigurator::isCanGridEnabled(){
         else std::cout << "Failed to get create log tag. Default is false" << std::endl;
         return false;
     }
-    if ((ret.compare("true") == 0) | (ret.compare("TRUE") == 0) | (ret.compare("True") == 0)){
-        return true;
-    }
-    return false;
+    return AttrIsYes(ret);
 }
 bool nodeConfigurator::enableCanGrid(bool grid){
     string r;
-    if (grid) r = "True";
-    else r = "False";
+    if (grid) r = "Y";
+    else r = "N";
 
     if (config.find(TAG_CAN_GRID) == config.end()) return false;
     config[TAG_CAN_GRID] = r;
@@ -984,8 +979,8 @@ string nodeConfigurator::getServiceName(){
 
 bool nodeConfigurator::setLogAppend(bool val){
     string r;
-    if (val) r = "True";
-    else r = "False";
+    if (val) r = "Y";
+    else r = "N";
 
     if (config.find(TAG_LOGAPPEND) == config.end()) return false;
     config[TAG_LOGAPPEND] = r;
@@ -999,16 +994,13 @@ bool nodeConfigurator::getLogAppend(){
         else std::cout << "Failed to get logappend . Default is false" << std::endl;
         return false;
     }
-    if ((ret.compare("true") == 0) | (ret.compare("TRUE") == 0) | (ret.compare("True") == 0)){
-        return true;
-    }
-    return false;
+    return AttrIsYes(ret);
 }
 
 bool nodeConfigurator::setLogConsole(bool val){
     string r;
-    if (val) r = "True";
-    else r = "False";
+    if (val) r = "Y";
+    else r = "N";
 
     if (config.find(TAG_LOGCONSOLE) == config.end()) return false;
     config[TAG_LOGCONSOLE] = r;
@@ -1023,10 +1015,7 @@ bool nodeConfigurator::getLogConsole(){
         else std::cout << "Failed to get log console . Default is false" << std::endl;
         return false;
     }
-    if ((ret.compare("true") == 0) | (ret.compare("TRUE") == 0) | (ret.compare("True") == 0)){
-        return true;
-    }
-    return false;
+    return AttrIsYes(ret);
 }
 
 bool nodeConfigurator::setTurnoutFile(string val){

@@ -21,7 +21,7 @@ else
     # Set bonjour defaults
     service_name=`uname -n`
     tcpport="5555"
-    edserver="True"
+    edserver="Y"
 fi
 AVAHI_FILE=multiple.service
 BONJOUR_TEMPLATE=${CPSRV_HOME}/${AVAHI_FILE}.in
@@ -56,7 +56,7 @@ start_canpid() {
     fi
 
     # Check if edserver is enabled
-    if [ ${edserver,,} == "true" ] ; then
+    if [ ${edserver,,} == "y" ] ; then
 	setup_bonjour
     else
 	teardown_bonjour
