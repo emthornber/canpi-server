@@ -31,50 +31,17 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 find_package(log4cpp REQUIRED)
 
-add_executable(${PROJECT_NAME})
-target_sources(${PROJECT_NAME}
-    PRIVATE
-    src/canHandler.cpp
-    src/canHandler.h
-    src/Client.cpp
-    src/Client.h
-    src/edSession.cpp
-    src/edSession.h
-    src/frameCAN.cpp
-    src/frameCAN.h
-    src/gpio.cpp
-    src/gpio.h
-    src/main.cpp
-    src/msgdata.h
-    src/nodeConfigurator.cpp
-    src/nodeConfigurator.h
-    src/opc_codes.cpp
-    src/opc_codes.h
-    src/opcodes.h
-    src/sessionHandler.cpp
-    src/sessionHandler.h
-    src/tcpClient.cpp
-    src/tcpClient.h
-    src/tcpClientGridConnect.cpp
-    src/tcpClientGridConnect.h
-    src/tcpServer.cpp
-    src/tcpServer.h
-    src/Turnout.cpp
-    src/Turnout.h
-    src/utils.h)
+# Define targets and sources
+add_subdirectory(src)
 
-target_include_directories(${PROJECT_NAME}
-    PRIVATE
-    # where the executable itself will look for its internal headers
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
+# enable testing and define tests
+enable_testing()
 
-if(CMAKE_COMPILER_IS_GNUCXX)
-    # compile options for this target only
-    target_compile_options(${PROJECT_NAME} PRIVATE -c -Wall -fpermissive -mcpu=arm1176jzf-s)
-endif()
+# Add Google Test
+add_subdirectory(googletest)
+include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
-target_link_libraries(${PROJECT_NAME} log4cpp pthread)
+add_subdirectory(test)
 
 # from Earthly
 include(GNUInstallDirs)

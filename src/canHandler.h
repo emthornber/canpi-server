@@ -27,11 +27,11 @@
 #include "opc_codes.h"
 
 #define CAN_MSG_SIZE 8
-#define WAIT_ENUM 200 //ms
-#define NN_PB_TIME 6000 //time the button for request node number is pressed is 8 seconds
-#define AENUM_PB_TIME 2000 //time the button for auto enum is pressed is 2 seconds
-#define BLINK_INTERVAL 300 //time in milliseconds seconds
-#define CBUS_KEEP_ALIVE  4000 //ms
+#define WAIT_ENUM 200        // ms
+#define NN_PB_TIME 6000      // time the button for request node number is pressed is 8 seconds
+#define AENUM_PB_TIME 2000   // time the button for auto enum is pressed is 2 seconds
+#define BLINK_INTERVAL 300   // time in milliseconds seconds
+#define CBUS_KEEP_ALIVE 4000 // ms
 
 using std::string;
 using std::stringstream;
@@ -41,98 +41,121 @@ class tcpServer;
 
 class canHandler
 {
-    public:
-        canHandler(log4cpp::Category *logger,int canId);
-        virtual ~canHandler();
-        int start(const char* interface);
-        int put_to_out_queue(char *msg,int size,CLIENT_TYPE ct);
-        int put_to_out_queue(int canid,char *msg,int size,CLIENT_TYPE ct);
-        int put_to_incoming_queue(int canid,char *msg,int size,CLIENT_TYPE ct);
-        void stop();
-        void setCanId(int id);
-        int getCanId();
-        void setTcpServer(tcpServer * tcpserver);
-        void setPins(int pb,int gled, int yled);
-        void setNodeNumber(int nn);
-        int getNodeNumber(){return node_number;};
-        void setConfigurator(nodeConfigurator *config);
-    protected:
-    private:
-        int canId;
-        int node_number;
-        int canInterface;
-        int running;
-        opc_container opcs;
+public:
+    canHandler(log4cpp::Category *logger, int canId);
+    virtual ~canHandler();
+    int start(const char *interface);
+    int put_to_out_queue(char *msg, int size, CLIENT_TYPE ct);
+    int put_to_out_queue(int canid, char *msg, int size, CLIENT_TYPE ct);
+    int put_to_incoming_queue(int canid, char *msg, int size, CLIENT_TYPE ct);
+    void stop();
+    void setCanId(int id);
+    int getCanId();
+    void setTcpServer(tcpServer *tcpserver);
+    void setPins(int pb, int gled, int yled);
+    void setNodeNumber(int nn);
+    int getNodeNumber() { return node_number; };
+    void setConfigurator(nodeConfigurator *config);
 
-        struct ifreq ifr;
-        struct sockaddr_can addr;
-        log4cpp::Category *logger;
-        pthread_t cbusReader;
-        pthread_t queueReader;
-        pthread_t queueWriter;
-        pthread_t pbLogic;
-        tcpServer *tcpserver;
-        vector<tcpServer*> servers;
-        std::queue<frameCAN> in_msgs;
-        std::queue<frameCAN> out_msgs;
-        bool auto_enum_mode = false;
-        bool soft_auto_enum = false;
-        bool setup_mode = false;
-        bool cbus_stopped = false;
-        bool pb_pressed = false;
-        bool blinking = false;
-        int pbpin;
-        int glpin;
-        int ylpin;
-        gpio pb;
-        gpio gl;
-        gpio yl;
-        vector<int> canids;
-        //auto enum timers
-        long double sysTimeMS_start;
-        long double sysTimeMS_end;
-        //node number request timer
-        long double nnPressTime;
-        long double nnReleaseTime;
-        long double ledtime;
-        pthread_mutex_t m_mutex;
-        pthread_cond_t  m_condv;
-        pthread_mutex_t m_mutex_in;
-        pthread_cond_t  m_condv_in;
-        nodeConfigurator *config;
+    // Helper methods for testing
+    bool isAutoEnumMode() const { return auto_enum_mode; }
+    std::queue<frameCAN> &getOutMsgs() { return out_msgs; }
+    void doSelfEnum();
+    void finishSelfEnum(int id);
 
-        void send_start_event();
-        void send_end_event();
-        void run_in(void* param);
-        void run_out(void* param);
-        void run_queue_reader(void* param);
-        void run_pb_logic(void* param);
-        void doSelfEnum();
-        void finishSelfEnum(int id);
-        void handleCBUSEvents(frameCAN frame);
+protected:
+private:
+    int canId;
+    int node_number;
+    int canInterface;
+    int running;
+    opc_container opcs;
 
-        void restart_module(SCRIPT_ACTIONS action);
+    struct ifreq ifr;
+    struct sockaddr_can addr;
+    log4cpp::Category *logger;
+    pthread_t cbusReader;
+    pthread_t queueReader;
+    pthread_t queueWriter;
+    pthread_t pbLogic;
+    tcpServer *tcpserver;
+    vector<tcpServer *> servers;
+    std::queue<frameCAN> in_msgs;
+    std::queue<frameCAN> out_msgs;
+    bool auto_enum_mode = false;
+    bool soft_auto_enum = false;
+    bool setup_mode = false;
+    bool cbus_stopped = false;
+    bool pb_pressed = false;
+    bool blinking = false;
+    int pbpin;
+    int glpin;
+    int ylpin;
+    gpio pb;
+    gpio gl;
+    gpio yl;
+    vector<int> canids;
+    // auto enum timers
+    long double sysTimeMS_start;
+    long double sysTimeMS_end;
+    // node number request timer
+    long double nnPressTime;
+    long double nnReleaseTime;
+    long double ledtime;
+    pthread_mutex_t m_mutex;
+    pthread_cond_t m_condv;
+    pthread_mutex_t m_mutex_in;
+    pthread_cond_t m_condv_in;
+    nodeConfigurator *config;
 
-        void print_frame(can_frame *frame, string message);
-        void dump_frame(can_frame *frame, string message, bool decode);
+    void send_start_event();
+    void send_end_event();
+    void run_in(void *param);
+    void run_out(void *param);
+    void run_queue_reader(void *param);
+    void run_pb_logic(void *param);
+    void handleCBUSEvents(frameCAN frame);
 
-        static void* thread_entry_in(void *classPtr){
-            ((canHandler*)classPtr)->run_in(nullptr);
-            return nullptr;
-        }
-        static void* thread_entry_out(void *classPtr){
-            ((canHandler*)classPtr)->run_out(nullptr);
-            return nullptr;
-        }
-        static void* thread_entry_in_reader(void *classPtr){
-            ((canHandler*)classPtr)->run_queue_reader(nullptr);
-            return nullptr;
-        }
+    void restart_module(SCRIPT_ACTIONS action);
 
-        static void* thread_entry_pb_logic(void *classPtr){
-            ((canHandler*)classPtr)->run_pb_logic(nullptr);
-            return nullptr;
-        }
+    void print_frame(can_frame *frame, string message);
+    void dump_frame(can_frame *frame, string message, bool decode);
+
+    static void *thread_entry_in(void *classPtr)
+    {
+        ((canHandler *)classPtr)->run_in(nullptr);
+        return nullptr;
+    }
+    static void *thread_entry_out(void *classPtr)
+    {
+        ((canHandler *)classPtr)->run_out(nullptr);
+        return nullptr;
+    }
+    static void *thread_entry_in_reader(void *classPtr)
+    {
+        ((canHandler *)classPtr)->run_queue_reader(nullptr);
+        return nullptr;
+    }
+
+    static void *thread_entry_pb_logic(void *classPtr)
+    {
+        ((canHandler *)classPtr)->run_pb_logic(nullptr);
+        return nullptr;
+    }
+
+    // Helper method to get current time in milliseconds
+    long double getCurrentTimeMS()
+    {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(
+                   std::chrono::system_clock::now().time_since_epoch())
+            .count();
+    }
+
+    // Helper method to put a frame in the out_msgs queue
+    void putToOutQueue(const frameCAN &frame)
+    {
+        out_msgs.push(frame);
+    }
 };
 
 #endif // CANHANDLER_H
