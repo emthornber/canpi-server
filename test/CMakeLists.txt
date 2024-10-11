@@ -1,8 +1,7 @@
 # Add your test files
 add_executable(canhandler_test
+    $<TARGET_OBJECTS:canpi_objs>
     canhandler_test.cpp
-    ${CMAKE_SOURCE_DIR}/src/canHandler.cpp
-    # ... other necessary source files ...
 )
 
 target_include_directories(canhandler_test
