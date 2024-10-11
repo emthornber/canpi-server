@@ -1,12 +1,9 @@
-add_executable(${PROJECT_NAME})
-target_sources(${PROJECT_NAME}
-    PRIVATE
+set(CANPI_SOURCES
     canHandler.cpp
     Client.cpp
     edSession.cpp
     frameCAN.cpp
     gpio.cpp
-    main.cpp
     nodeConfigurator.cpp
     opc_codes.cpp
     sessionHandler.cpp
@@ -14,24 +11,13 @@ target_sources(${PROJECT_NAME}
     tcpClientGridConnect.cpp
     tcpServer.cpp
     Turnout.cpp
-    PUBLIC
-    canHandler.h
-    Client.h
-    edSession.h
-    frameCAN.h
-    gpio.h
-    msgdata.h
-    nodeConfigurator.h
-    opc_codes.h
-    opcodes.h
-    sessionHandler.h
-    tcpClient.h
-    tcpClientGridConnect.h
-    tcpServer.h
-    Turnout.h
-    utils.h
 )
 
+list(TRANSFORM CANPI_SOURCES REPLACE "[.]cpp" ".h" OUTPUT_VARIABLE CANPI_HEADERS)
+
+add_library(canpi_objs OBJECT ${CANPI_SOURCES} ${CANPI_HEADERS})
+
+add_executable(${PROJECT_NAME} $<TARGET_OBJECTS:canpi_objs> main.cpp)
 target_include_directories(${PROJECT_NAME}
     PRIVATE
     # where the executable itself will look for its internal headers

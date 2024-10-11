@@ -1,7 +1,7 @@
 ################################################################################
 #   EPM configuration file to create the canpi-server package
 #
-#   Note: Expects ${binary} and ${srcdir} to be defined externally
+#   Note: Expects ${binary}, ${srcdir}, and ${version} to be defined externally
 #
 #   04 July, 2022 - E M Thornber
 #   Created
@@ -18,6 +18,10 @@
 #   09 February, 2024 - E M Thornber
 #   Add template re rebooting after installation
 #   Handle various paths to config.txt
+#
+#   11 October, 2024 - E M Thornber
+#   Added changelog definition
+#   Added external version string definition
 #
 ################################################################################
 #
@@ -46,7 +50,7 @@ $candev=/proc/device-tree/can0_osc
 %license LICENSE
 %readme README.md
 %description Interfaces MERG-CANBUS protocol with JMRI Engine Driver application.
-%version 1.1.0beta3
+%version ${version}
 
 %requires avahi-daemon
 %requires avahi-utils
@@ -107,6 +111,8 @@ Description: Would you like to reboot to complete the package installation ?
  will cause it to fail immediately.
 
 EOF
+
+%literal(changelog) CHANGES.md
 
 %preinstall <<EOF
 # Check status of can0 device
