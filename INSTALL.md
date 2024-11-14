@@ -6,6 +6,6 @@ and contained in an Apt Repository.
 (`emthornber/canpi-server`)
 
 - The Apt repository is available at [MERG-DEV Apt
-Repository](repo.littlegarth.org.uk).  Visiting the site displays instructions
+Repository](emthornber.github.io/rpirepo).  Visiting the site displays instructions
 on how to setup the apt configuration to access the MERG-DEV repository along
 with a downloadable script to carry out those instructions.
