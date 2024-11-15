@@ -12,6 +12,9 @@
 #	11 October, 2024 - E M Thornber
 #	Streamlined targets
 #
+#	14 November, 2024 - E M Thornber
+#	Corrected package build logfile directory
+#
 #	EVs required
 #	BFILE - path to canpi executable
 #	ODIR  - where to place the .deb file
@@ -34,5 +37,5 @@ pkgs: portable deb
 
 deb portable:
 	sudo $(RM) $(ODIR)/$@-*.log
-	sudo $(EPM) -a armhf -f $@ -vv --output-dir $(ODIR) binary=$(BFILE) srcdir=$(SDIR) version=$(VERS) $(PKGNAME) $(PKGDEFN) 2>&1 | tee $@-$(TS).log
+	sudo $(EPM) -a armhf -f $@ -vv --output-dir $(ODIR) binary=$(BFILE) srcdir=$(SDIR) version=$(VERS) $(PKGNAME) $(PKGDEFN) 2>&1 | tee $(ODIR)/$@-$(TS).log
 

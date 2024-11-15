@@ -29,4 +29,4 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     target_compile_options(${PROJECT_NAME} PRIVATE -c -Wall -fpermissive -mcpu=arm1176jzf-s)
 endif()
 
-target_link_libraries(${PROJECT_NAME} log4cpp pthread)
+target_link_libraries(${PROJECT_NAME} log4cpp pigpio pthread rt)

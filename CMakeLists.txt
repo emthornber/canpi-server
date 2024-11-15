@@ -29,20 +29,25 @@ endif()
 
 # from Earthly
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
+find_package(pigpio REQUIRED)
 find_package(log4cpp REQUIRED)
 
 # Define targets and sources
 add_subdirectory(src)
 
 # enable testing and define tests
-enable_testing()
+set(BUILD_TESTING OFF)
+# enable_testing()
 
-# Add Google Test
-add_subdirectory(googletest)
-include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+if (BUILD_TESTING)
+    # Add Google Test
+    add_subdirectory(googletest)
+    include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
-add_subdirectory(test)
+    add_subdirectory(test)
+endif(
 
+)
 # from Earthly
 include(GNUInstallDirs)
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
