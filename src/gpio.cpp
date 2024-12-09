@@ -1,115 +1,161 @@
 #include "gpio.h"
+#include <unordered_map>
 
-/* gpio::gpio()
+namespace
 {
-    this->pin = "4"; //GPIO4 is default
-} */
+    const std::unordered_map<int, std::string> err_strings = {
+        {PI_BAD_GPIO, "PI_BAD_GPIO"},
+        {PI_BAD_MODE, "PI_BAD_MODE"},
+        {PI_BAD_LEVEL, "PI_BAD_LEVEL"},
+        {PI_NOT_PERMITTED, "PI_NOT_PERMITTED "},
+    };
+    const std::unordered_map<int, std::string> mode_strings = {
+        {static_cast<int>(Mode::GP_IN), "PI_INPUT"},
+        {static_cast<int>(Mode::GP_OUT), "PI_OUTPUT"},
+    };
+    const std::unordered_map<int, std::string> level_strings = {
+        {static_cast<int>(Level::GP_OFF), "PI_OFF"},
+        {static_cast<int>(Level::GP_ON), "PI_ON"},
+    };
 
-gpio::gpio(string gnum)
-{
-    this->pin = gnum; // Instatiate GPIOClass object for GPIO pin number "gnum"
+    /**
+     * @brief Return hash value of hash key allowing for missing key
+     * @param table address of hash table
+     * @param key hash key
+     * @return
+     */
+    std::string state_to_text(const std::unordered_map<int, std::string> &table, int key)
+    {
+        auto it = table.find(key);
+        return it != table.end() ? it->second : "UNKNOWN";
+    }
 }
 
+gpio *gpio::_library = 0;
+
+/**
+ * @brief singleton ctor
+ * @return
+ */
+gpio *gpio::Library(log4cpp::Category *log4cpp)
+{
+    if (_library == 0)
+    {
+        _library = new gpio;
+        _library->logger = log4cpp;
+    }
+    return _library;
+}
+
+gpio::gpio() : pi(pigpio_start(nullptr, nullptr))
+{
+    if (pi < 0)
+    {
+        throw std::runtime_error("Failed to connect to pigpio daemon");
+    }
+}
+/**
+ * @brief dtor
+ */
 gpio::~gpio()
 {
-    if (exported)
-    {
-        // unexport_gpio();
-    }
+    // Terminate connection to pigpio daemon and releases resources used by the
+    // library.
+    logger->debug("[gpio] pigpio_if2 library stopped");
+    pigpio_stop(pi);
 }
 
-int gpio::export_gpio()
+/**
+ * @brief set mode for a GPIO pin
+ * @param pin_num pin number 0 - 53
+ * @param dir mode PI_INPUT or PI_OUTPUT
+ * @return
+ */
+int gpio::setdir_gpio(unsigned pin_num, Mode dir)
 {
-    string export_str = "/sys/class/gpio/export";
-    ofstream exportgpio(export_str.c_str()); // Open "export" file. Convert C++ string to C string. Required for all Linux pathnames
-    // if (exportgpio < 0){
-    if (exportgpio.fail() || exportgpio.bad())
+    // set_mode returns 0 on success
+    int result = set_mode(pi, pin_num, dir);
+    if (result)
     {
-        std::cout << " OPERATION FAILED: Unable to export GPIO" << this->pin << " ." << std::endl;
-        return -1;
+        logger->error(
+            "[gpio] setdir_gpio error for pin %d - %s (%d)",
+            pin_num, err_to_string(result), result);
     }
-    exportgpio << this->pin; // write GPIO number to export
-    exportgpio.close();      // close export file
-    exported = true;
-    return 0;
-}
-
-int gpio::unexport_gpio()
-{
-    string unexport_str = "/sys/class/gpio/unexport";
-    ofstream unexportgpio(unexport_str.c_str()); // Open unexport file
-    // if (unexportgpio < 0){
-    if (unexportgpio.fail() || unexportgpio.bad())
-    {
-        std::cout << " OPERATION FAILED: Unable to unexport GPIO" << this->pin << " ." << std::endl;
-        return -1;
-    }
-
-    unexportgpio << this->pin; // write GPIO number to unexport
-    unexportgpio.close();      // close unexport file
-    return 0;
-}
-
-int gpio::setdir_gpio(string dir)
-{
-
-    string setdir_str = "/sys/class/gpio/gpio" + this->pin + "/direction";
-    ofstream setdirgpio(setdir_str.c_str()); // open direction file for gpio
-    // if (setdirgpio < 0){
-    if (setdirgpio.fail() || setdirgpio.bad())
-    {
-        std::cout << " OPERATION FAILED: Unable to set direction of GPIO" << this->pin << " ." << std::endl;
-        return -1;
-    }
-
-    setdirgpio << dir;  // write direction to direction file
-    setdirgpio.close(); // close direction file
-    return 0;
-}
-
-int gpio::setval_gpio(string val)
-{
-
-    string setval_str = "/sys/class/gpio/gpio" + this->pin + "/value";
-    ofstream setvalgpio(setval_str.c_str()); // open value file for gpio
-    // if (setvalgpio < 0){
-    if (setvalgpio.fail() || setvalgpio.bad())
-    {
-        std::cout << " OPERATION FAILED: Unable to set the value of GPIO" << this->pin << " ." << std::endl;
-        return -1;
-    }
-
-    setvalgpio << val;  // write value to value file
-    setvalgpio.close(); // close value file
-    return 0;
-}
-
-int gpio::getval_gpio(string &val)
-{
-
-    string getval_str = "/sys/class/gpio/gpio" + this->pin + "/value";
-    // std::cout << "Reading the value of " << getval_str << std::endl;
-    ifstream getvalgpio(getval_str.c_str()); // open value file for gpio
-    // if (getvalgpio < 0){
-    if (getvalgpio.fail() || getvalgpio.bad())
-    {
-        std::cout << " OPERATION FAILED: Unable to get value of GPIO" << this->pin << " ." << std::endl;
-        return -1;
-    }
-
-    getvalgpio >> val; // read gpio value
-    // std::cout << "GPIO value is " << val << std::endl;
-    if (val != "0")
-        val = "1";
     else
-        val = "0";
-
-    getvalgpio.close(); // close the value file
-    return 0;
+    {
+        logger->debug("[gpio] Pin %d set to mode %s", pin_num, mode_to_string(dir));
+    }
+    return result;
 }
 
-string gpio::get_pin()
+/**
+ * @brief set value of a GPIO pin
+ * @param pin_num pin number 0 - 53
+ * @param val 0 or 1
+ * @return
+ */
+int gpio::setval_gpio(unsigned pin_num, Level val)
 {
+    int result = gpio_write(pi, pin_num, val);
+    if (result)
+    {
+        logger->error(
+            "[gpio] setval_gpio error for pin %d - %s (%d)",
+            pin_num, err_to_string(result), result);
+    }
+    return result;
+}
 
-    return this->pin;
+/**
+ * @brief get value of a GPIO pin
+ * @param pin_num pin number 0 - 53
+ * @param val
+ * @return
+ */
+int gpio::getval_gpio(unsigned pin_num, Level &val)
+{
+    int result = gpio_read(pi, pin_num);
+    if (result >= 0)
+    {
+        val = result ? Level::GP_ON : Level::GP_OFF;
+        return 0;
+    }
+    else
+    {
+        logger->error(
+            "[gpio] getval_gpio error for pin %d - %s (%d)",
+            pin_num, err_to_string(result), result);
+        return result;
+    }
+}
+
+// Utility routines
+/**
+ * @brief Convert an error number to text
+ * @param errnum Error number as defined in pigpio.h
+ * @return
+ */
+std::string gpio::err_to_string(int errnum)
+{
+    return state_to_text(err_strings, errnum);
+}
+
+/**
+ * @brief Convert a level number to text
+ * @param level level number as defined in pigpio.h
+ * @return
+ */
+std::string gpio::level_to_string(int level)
+{
+    return state_to_text(level_strings, level);
+}
+
+/**
+ * @brief Convert a mode number to text
+ * @param mode mode number as defined in pigpio.h
+ * @return
+ */
+std::string gpio::mode_to_string(int mode)
+{
+    return state_to_text(mode_strings, mode);
 }

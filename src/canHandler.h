@@ -52,7 +52,7 @@ public:
     void setCanId(int id);
     int getCanId();
     void setTcpServer(tcpServer *tcpserver);
-    void setPins(int pb, int gled, int yled);
+    void setPins(int pbpin, int glpin, int ylpin);
     void setNodeNumber(int nn);
     int getNodeNumber() { return node_number; };
     void setConfigurator(nodeConfigurator *config);
@@ -88,12 +88,14 @@ private:
     bool cbus_stopped = false;
     bool pb_pressed = false;
     bool blinking = false;
-    int pbpin;
-    int glpin;
-    int ylpin;
-    gpio pb;
-    gpio gl;
-    gpio yl;
+    /**
+     * GPIO pin numbers
+     */
+    unsigned pbpin; // Push button
+    unsigned glpin; // Green LED - SLiM mode
+    unsigned ylpin; // Yellow LED - FLiM mode
+    // GPIO pigpiod_if2 library wrapper class
+    gpio *gpio_lib;
     vector<int> canids;
     // auto enum timers
     long double sysTimeMS_start;

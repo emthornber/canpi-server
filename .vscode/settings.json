@@ -1,6 +1,9 @@
 {
     "cmake.configureOnOpen": false,
     "files.associations": {
-        "cstddef": "cpp"
-    }
+        "*.make": "makefile",
+        "cstddef": "cpp",
+        "unordered_map": "cpp"
+    },
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }

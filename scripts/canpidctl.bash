@@ -43,6 +43,12 @@ teardown_bonjour() {
     systemctl restart avahi-daemon
 }
 
+setup_pigpiod() {
+    # Check status of pigpiod service
+    systemctl --quiet is-active pigpiod
+    if [ $? -ne 0] then systemctl start pigpiod fi
+}
+
 start_canpid() {
     pid=`pgrep --exact canpid`
     if [ $? -eq 0 ] ;
@@ -50,6 +56,8 @@ start_canpid() {
 	echo canpi already running
     else
 	echo starting canpid
+    # ensure pigpio daemon is active
+    setup_pigpiod
 	/usr/local/bin/canpid >> "/var/log/canpid/stdout.log" 2>>"/var/log/canpid/stderr.log" &
 	echo $! > $PID_FILE
 	if [ ! `pgrep --exact canpid` ] ; then echo canpid did not start ; fi

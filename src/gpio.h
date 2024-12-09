@@ -1,35 +1,47 @@
 #ifndef GPIO_H
 #define GPIO_H
 
-#include <fstream>
+#include <log4cpp/Category.hh>
+#include <pigpiod_if2.h>
 #include <string>
-#include <iostream>
-#include <sstream>
+#include <memory>
 
-using std::ifstream;
-using std::ofstream;
-using std::string;
+enum Mode
+{
+    GP_IN = PI_INPUT,
+    GP_OUT = PI_OUTPUT,
+};
 
-/* GPIO Class
- * Purpose: Each object instantiated from this class will control a GPIO pin
- * The GPIO pin number must be passed to the overloaded class constructor
+enum Level
+{
+    GP_OFF = PI_OFF,
+    GP_ON = PI_ON,
+};
+/** GPIO Class
+ * @brief Singleton wrapper class for pigpio_if2 C library
+ * @details The class provides access to the pigpio daemon and, thence, to the
+ * GPIO pins.
  */
+
 class gpio
 {
 public:
-    // gpio();  // create a GPIO object that controls GPIO4 (default
-    gpio(string x); // create a GPIO object that controls GPIOx, where x is passed to this constructor
+    static gpio *Library(log4cpp::Category *logger);
     virtual ~gpio();
-    // int export_gpio(); // exports GPIO
-    // int unexport_gpio(); // unexport GPIO
-    int setdir_gpio(string dir);  // Set GPIO Direction
-    int setval_gpio(string val);  // Set GPIO Value (output pins)
-    int getval_gpio(string &val); // Get GPIO Value (input/ output pins)
-    string get_pin();             // return the GPIO number associated with the instance of an object
+
+    int setdir_gpio(unsigned pin_num, Mode dir);   // Set GPIO Direction
+    int setval_gpio(unsigned pin_num, Level val);  // Set GPIO Value (output pins)
+    int getval_gpio(unsigned pin_num, Level &val); // Get GPIO Value (input/ output pins)
+
 private:
-    unsigned pin;  // GPIO number associated with the instance of an object
-    unsigned mode; // Mode of pin usage - INPUT, OUTPUT
-    // bool exported=false;
+    static gpio *_library;
+    log4cpp::Category *logger;
+    std::string err_to_string(int);
+    std::string level_to_string(int);
+    std::string mode_to_string(int);
+    gpio();
+
+    int pi; // ID returned by pigpio_start()
 };
 
 #endif // GPIO_H
