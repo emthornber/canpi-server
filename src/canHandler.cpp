@@ -435,7 +435,7 @@ void canHandler::run_queue_reader(void *param)
 
                 /*
                  * Check if some other node is doing auto enum
-                 * and answer with out canid
+                 * and answer with our canid
                  */
                 if (!(((frame.can_id & CAN_RTR_FLAG) == CAN_RTR_FLAG) && stdframe))
                 {
@@ -487,7 +487,7 @@ void canHandler::run_queue_reader(void *param)
                             }
                             else
                             {
-                                print_frame(&frame, "[canHandler] Droping message from GRID to GRID");
+                                print_frame(&frame, "[canHandler] Dropping message from GRID to GRID");
                             }
                         }
                         else
@@ -499,7 +499,7 @@ void canHandler::run_queue_reader(void *param)
 
                 /*
                  * Check if some other node is doing auto enum
-                 * and answer with out canid
+                 * and answer with our canid
                  */
                 if (((frame.can_id & CAN_RTR_FLAG) == CAN_RTR_FLAG) && stdframe)
                 {

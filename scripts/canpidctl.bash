@@ -46,7 +46,10 @@ teardown_bonjour() {
 setup_pigpiod() {
     # Check status of pigpiod service
     systemctl --quiet is-active pigpiod
-    if [ $? -ne 0] then systemctl start pigpiod fi
+    if [ $? -ne 0 ]
+    then
+        systemctl start pigpiod
+    fi
 }
 
 start_canpid() {

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-set(CANPI_SERVER_VERSION 1.0.4)
+set(CANPI_SERVER_VERSION 1.0.5)
 if(DEFINED CMAKE_PROJECT_VERSION AND NOT "${CMAKE_PROJECT_VERSION}" STREQUAL "")
     set(CANPI_SERVER_VERSION ${CMAKE_PROJECT_VERSION})
 endif()
@@ -36,8 +36,8 @@ find_package(log4cpp REQUIRED)
 add_subdirectory(src)
 
 # enable testing and define tests
-set(BUILD_TESTING OFF)
-# enable_testing()
+set(BUILD_TESTING ON)
+enable_testing()
 
 if (BUILD_TESTING)
     # Add Google Test

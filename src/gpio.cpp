@@ -1,4 +1,5 @@
 #include "gpio.h"
+#include <sstream>
 #include <unordered_map>
 
 namespace
@@ -51,7 +52,9 @@ gpio::gpio() : pi(pigpio_start(nullptr, nullptr))
 {
     if (pi < 0)
     {
-        throw std::runtime_error("Failed to connect to pigpio daemon");
+        std::stringstream errMsg;
+        errMsg << "Failed to connect to pigpio daemon (" << pi << ")";
+        throw std::runtime_error(errMsg.str().c_str());
     }
 }
 /**
