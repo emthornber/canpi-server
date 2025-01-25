@@ -18,7 +18,7 @@
 #	EVs required
 #	BFILE - path to canpi executable
 #	ODIR  - where to place the .deb file
-#	SDIR  -  Current source directory
+#	SDIR  - Current source directory
 #	VERS  - package version
 #
 #	Working directory is assumed to be ${CMAKE_CURRENT_SOURCE_DIR}
