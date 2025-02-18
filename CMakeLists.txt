@@ -60,6 +60,7 @@ add_custom_command(OUTPUT ${CPS_CONFIG}/canpi.cfg
     COMMAND python3 ${CPS_SCRIPTS}/create_canpi_cfg.py < ${CPS_CONFIG}/canpi-config-defn.json > ${CPS_CONFIG}/canpi.cfg
     DEPENDS ${CPS_CONFIG}/canpi-config-defn.json
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    VERBATIM
 )
 
 add_custom_target(canpi-cfg ALL
@@ -73,8 +74,8 @@ file(
 )
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.package
-    COMMAND BFILE=$<TARGET_FILE:${PROJECT_NAME}> ODIR=${CPS_PKG} SDIR=${CMAKE_CURRENT_SOURCE_DIR} VERS=${PROJECT_VERSION} make -f ${CPS_PKG}/Makefile all && touch ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.package
-    DEPENDS ${CPS_PKG}/${PROJECT_NAME}.epm $<TARGET_FILE:${PROJECT_NAME}> ${CPS_SCRIPTS}/canpidctl.bash ${CPS_PKG}/Makefile ${CONFIG_DEPS}
+    COMMAND BFILE=$<TARGET_FILE:${PROJECT_NAME}> ODIR=${CPS_PKG} PKGNAME=${PROJECT_NAME} SDIR=${CMAKE_CURRENT_SOURCE_DIR} VERS=${PROJECT_VERSION} make -f ${CPS_PKG}/Makefile all && touch ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.package
+    DEPENDS ${CPS_PKG}/${PROJECT_NAME}.epm $<TARGET_FILE:${PROJECT_NAME}> ${CPS_SCRIPTS}/canpidctl.bash ${CPS_PKG}/Makefile ${CONFIG_DEPS} ${CFG_CONFIG}/canpi.cfg
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 

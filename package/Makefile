@@ -15,17 +15,21 @@
 #	14 November, 2024 - E M Thornber
 #	Corrected package build logfile directory
 #
+#	10 February, 2025 - E M Thornber
+#	Added package name EV
+#
 #	EVs required
 #	BFILE - path to canpi executable
 #	ODIR  - where to place the .deb file
+#	PKGNAME - package name
 #	SDIR  - Current source directory
 #	VERS  - package version
 #
 #	Working directory is assumed to be ${CMAKE_CURRENT_SOURCE_DIR}
 ################################################################################
 
+ARCH := $(shell dpkg-architecture --query DEB_HOST_ARCH)
 EPM := $(shell which epm)
-PKGNAME := $(shell basename $(SDIR) )
 PKGDEFN := $(SDIR)/package/$(PKGNAME).epm
 PYTHON := /usr/bin/python3
 RM=/bin/rm -f
@@ -37,5 +41,5 @@ pkgs: portable deb
 
 deb portable:
 	sudo $(RM) $(ODIR)/$@-*.log
-	sudo $(EPM) -a armhf -f $@ -vv --output-dir $(ODIR) binary=$(BFILE) srcdir=$(SDIR) version=$(VERS) $(PKGNAME) $(PKGDEFN) 2>&1 | tee $(ODIR)/$@-$(TS).log
+	sudo $(EPM) -a ${ARCH} -f $@ -vv --output-dir $(ODIR) binary=$(BFILE) srcdir=$(SDIR) version=$(VERS) $(PKGNAME) $(PKGDEFN) 2>&1 | tee $(ODIR)/$@-$(TS).log
 

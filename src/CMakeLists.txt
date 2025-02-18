@@ -24,9 +24,9 @@ target_include_directories(${PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-if(CMAKE_COMPILER_IS_GNUCXX)
-    # compile options for this target only
-    target_compile_options(${PROJECT_NAME} PRIVATE -c -Wall -fpermissive -mcpu=arm1176jzf-s)
-endif()
+# if(CMAKE_COMPILER_IS_GNUCXX)
+#     # compile options for this target only
+#     target_compile_options(${PROJECT_NAME} PRIVATE -c -Wall -fpermissive)
+# endif()
 
 target_link_libraries(${PROJECT_NAME} log4cpp pthread pigpiod_if2 rt)
