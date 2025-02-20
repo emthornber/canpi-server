@@ -1,9 +1,7 @@
 .idea/
 .idea/workspace.xml
 *.swp
-build/
-build-*/
-bullseye-*/
+build32/
 InstallingConfigs.cmake
 InstallingGeneral.cmake
 *.deb

@@ -8,3 +8,5 @@ protocol and the JMRI Engine Drive application.
 It allows the user to drive model rail locomotives using the Engine Drive
 without JMRI.  The app also works as a CAN to CANGrid formatter via a tcp
 connection.
+
+Building and installation instructions are in [INSTALL.md](INSTALL.md)
