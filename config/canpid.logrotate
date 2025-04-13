@@ -7,3 +7,12 @@
 	notifempty
 	create 644 root adm
 }
+/usr/local/etc/canpi/canpi.log {
+	daily
+	missingok
+	rotate 5
+	compress
+	delaycompress
+	notifempty
+	create 644 root adm
+}
