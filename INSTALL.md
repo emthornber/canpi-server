@@ -1,4 +1,5 @@
 # CANPi Gateway to CBus
+
 This functionality is distributed as a Debian package, as a compressed source tarball,
 and contained in an Apt Repository.
 
@@ -11,6 +12,7 @@ on how to setup the apt configuration to access the MERG-DEV repository along
 with a downloadable script to carry out those instructions.
 
 ## Compiling
+
 The executable needs the [log4cpp](https://log4cpp.sourceforge.net) shared
 library and the [pigpio](https://abyz.me.uk/rpi/pigpio/) daemon and interface
 developement library (which is normally installed as part of the RPiOS image).
@@ -34,6 +36,7 @@ cmake --build build
 ```
 
 ## Installation
+
 After a successful build there is a Debian package (and a portable tarball) in `./package` e.g.
 ```
 canpi-server-1.1.2-linux-6.6-armhf.deb
@@ -41,5 +44,5 @@ canpi-server-1.1.2-linux-6.6-armhf.tar.gz
 ```
 which can be installed using `apt`
 ```
-sudo apt install ./package/canpi-server-1.1.2-linux-6.6.deb
+sudo apt install ./package/canpi-server-1.1.2-linux-6.6-armhf.deb
 ```

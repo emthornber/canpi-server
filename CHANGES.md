@@ -1,3 +1,9 @@
+canpi-server (1.1.2) bookworm; urgency=low
+  * Updated build process to be architecture-agnostic
+  * Added installation instructions
+  * SLiM/FLiM functionality improved
+-- Mark Thornber <mark.thornber@gmail.com> Fri, 21 Feb 2025 14:59:00 +0100
+
 canpi-server (1.1.0beta3) bookworm; urgency=low
   * Reorganisation of CANPiWi source code to facilitate creation of a Debian package
   * Switched to use systemd (instead of init)
