@@ -36,9 +36,9 @@ public:
 private:
     static gpio *_library;
     log4cpp::Category *logger;
-    std::string err_to_string(int);
-    std::string level_to_string(int);
-    std::string mode_to_string(int);
+    const char *err_to_text(int);
+    const char *level_to_text(int);
+    const char *mode_to_text(int);
     gpio();
 
     int pi; // ID returned by pigpio_start()

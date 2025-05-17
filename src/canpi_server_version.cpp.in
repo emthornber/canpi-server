@@ -1,0 +1,27 @@
+// from "Professional CMake: A Practical Guide" by Craig Scott
+#include "canpi_server_version.h"
+
+std::string getCanpiServerVersion()
+{
+    return "@CanpiServer_VERSION@";
+}
+
+unsigned getCanpiServerVersionMajor()
+{
+    return @CanpiServer_VERSION_MAJOR@;
+}
+
+unsigned getCanpiServerVersionMinor()
+{
+    return @CanpiServer_VERSION_MINOR@ +0;
+}
+
+unsigned getCanpiServerVersionPatch()
+{
+    return @CanpiServer_VERSION_PATCH@ +0;
+}
+
+unsigned getCanpiServerVersionTweak()
+{
+    return @CanpiServer_VERSION_TWEAK@ +0;
+}

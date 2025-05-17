@@ -25,10 +25,10 @@ namespace
      * @param key hash key
      * @return
      */
-    std::string state_to_text(const std::unordered_map<int, std::string> &table, int key)
+    const char *state_to_text(const std::unordered_map<int, std::string> &table, int key)
     {
         auto it = table.find(key);
-        return it != table.end() ? it->second : "UNKNOWN";
+        return it != table.end() ? it->second.c_str() : "UNKNOWN";
     }
 }
 
@@ -82,11 +82,11 @@ int gpio::setdir_gpio(unsigned pin_num, Mode dir)
     {
         logger->error(
             "[gpio] setdir_gpio error for pin %d - %s (%d)",
-            pin_num, err_to_string(result), result);
+            pin_num, err_to_text(result), result);
     }
     else
     {
-        logger->debug("[gpio] Pin %d set to mode %s", pin_num, mode_to_string(dir));
+        logger->debug("[gpio] Pin %d set to mode %s", pin_num, mode_to_text(dir));
     }
     return result;
 }
@@ -104,7 +104,7 @@ int gpio::setval_gpio(unsigned pin_num, Level val)
     {
         logger->error(
             "[gpio] setval_gpio error for pin %d - %s (%d)",
-            pin_num, err_to_string(result), result);
+            pin_num, err_to_text(result), result);
     }
     return result;
 }
@@ -127,7 +127,7 @@ int gpio::getval_gpio(unsigned pin_num, Level &val)
     {
         logger->error(
             "[gpio] getval_gpio error for pin %d - %s (%d)",
-            pin_num, err_to_string(result), result);
+            pin_num, err_to_text(result), result);
         return result;
     }
 }
@@ -138,7 +138,7 @@ int gpio::getval_gpio(unsigned pin_num, Level &val)
  * @param errnum Error number as defined in pigpio.h
  * @return
  */
-std::string gpio::err_to_string(int errnum)
+const char *gpio::err_to_text(int errnum)
 {
     return state_to_text(err_strings, errnum);
 }
@@ -148,7 +148,7 @@ std::string gpio::err_to_string(int errnum)
  * @param level level number as defined in pigpio.h
  * @return
  */
-std::string gpio::level_to_string(int level)
+const char *gpio::level_to_text(int level)
 {
     return state_to_text(level_strings, level);
 }
@@ -158,7 +158,7 @@ std::string gpio::level_to_string(int level)
  * @param mode mode number as defined in pigpio.h
  * @return
  */
-std::string gpio::mode_to_string(int mode)
+const char *gpio::mode_to_text(int mode)
 {
     return state_to_text(mode_strings, mode);
 }

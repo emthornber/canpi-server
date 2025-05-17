@@ -1,31 +1,35 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.23)
 
-set(CANPI_SERVER_VERSION 1.1.2)
-if(DEFINED CMAKE_PROJECT_VERSION AND NOT "${CMAKE_PROJECT_VERSION}" STREQUAL "")
-    set(CANPI_SERVER_VERSION ${CMAKE_PROJECT_VERSION})
-endif()
-
-project("canpi-server"
-    VERSION ${CANPI_SERVER_VERSION}
-    DESCRIPTION "CANPiCAP Interface"
+project(
+    CanpiServer
+    VERSION 1.1.2
+    DESCRIPTION "CANPiCAP/CANPiZero Interface"
     LANGUAGES CXX
 )
 
-message(STATUS "This project version: ${PROJECT_VERSION}")
-message(STATUS "This project major version: ${PROJECT_VERSION_MAJOR}")
-
-if (NOT CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-    message(STATUS "This project has a top-level one called [${CMAKE_PROJECT_NAME}]")
+# from "Professional CMake: A Practical Guide" by Craig Scott
+if(DEFINED CMAKE_CXX_STANDARD)
+    if(CMAKE_CXX_STANDARD EQUAL 98 OR
+       CMAKE_CXX_STANDARD LESS 11)
+        message(FATAL_ERROR
+            "This project requires at least C++11"
+        )
+    endif()
 else()
-    message(STATUS "This project is a top level one")
-endif()
-
-if(NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 11)
-    set(CMAKE_CXX_STANDARD_REQUIRED ON)
-else()
-    message(STATUS "C++ standard has been already set to: ${CMAKE_CXX_STANDARD}")
 endif()
+
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if(NOT DEFINED CMAKE_CXX_EXTENSIONS)
+    set(CMAKE_CXX_EXTENSIONS OFF)
+endif()
+
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O1")
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(CANPI_EXECUTABLE canpid)
 
 # from Earthly
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
@@ -50,7 +54,7 @@ endif(
 )
 # from Earthly
 include(GNUInstallDirs)
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS ${CANPI_EXECUTABLE} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 set(CPS_CONFIG  ${CMAKE_CURRENT_SOURCE_DIR}/config )
 set(CPS_PKG     ${CMAKE_CURRENT_SOURCE_DIR}/package )
@@ -74,11 +78,15 @@ file(
 )
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.package
-    COMMAND BFILE=$<TARGET_FILE:${PROJECT_NAME}> ODIR=${CPS_PKG} PKGNAME=${PROJECT_NAME} SDIR=${CMAKE_CURRENT_SOURCE_DIR} VERS=${PROJECT_VERSION} make -f ${CPS_PKG}/Makefile all && touch ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.package
-    DEPENDS ${CPS_PKG}/${PROJECT_NAME}.epm $<TARGET_FILE:${PROJECT_NAME}> ${CPS_SCRIPTS}/canpidctl.bash ${CPS_PKG}/Makefile ${CONFIG_DEPS} ${CPS_CONFIG}/canpi.cfg
+    COMMAND BFILE=$<TARGET_FILE:${CANPI_EXECUTABLE}> ODIR=${CPS_PKG} PKGNAME=canpi-server SDIR=${CMAKE_CURRENT_SOURCE_DIR} VERS=${PROJECT_VERSION} make -f ${CPS_PKG}/Makefile all && touch ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.package
+    DEPENDS ${CPS_PKG}/canpi-server.epm $<TARGET_FILE:${CANPI_EXECUTABLE}> ${CPS_SCRIPTS}/canpidctl.bash ${CPS_PKG}/Makefile ${CONFIG_DEPS} ${CPS_CONFIG}/canpi.cfg
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-add_custom_target(canpi-server-package ALL
+# Building the package is a separate target
+# that can be called from the command line
+# with "make canpi-server-package"
+# or "cmake --build build-debug --target canpi-server-package"
+add_custom_target(canpi-server-package
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.package
 )

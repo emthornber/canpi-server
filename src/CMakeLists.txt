@@ -15,18 +15,25 @@ set(CANPI_SOURCES
 
 list(TRANSFORM CANPI_SOURCES REPLACE "[.]cpp" ".h" OUTPUT_VARIABLE CANPI_HEADERS)
 
-add_library(canpi_objs OBJECT ${CANPI_SOURCES} ${CANPI_HEADERS})
+# from "Professional CMake: A Practical Guide" by Craig Scott"
+configure_file(
+    canpi_server_version.cpp.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/canpi_server_version.cpp
+    @ONLY
+)
 
-add_executable(${PROJECT_NAME} $<TARGET_OBJECTS:canpi_objs> main.cpp)
-target_include_directories(${PROJECT_NAME}
+add_library(
+    canpi_objs
+    OBJECT
+    ${CANPI_SOURCES} ${CANPI_HEADERS}
+    canpi_server_version.cpp canpi_server_version.h
+)
+
+add_executable(${CANPI_EXECUTABLE} $<TARGET_OBJECTS:canpi_objs> main.cpp)
+target_include_directories(${CANPI_EXECUTABLE}
     PRIVATE
     # where the executable itself will look for its internal headers
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-# if(CMAKE_COMPILER_IS_GNUCXX)
-#     # compile options for this target only
-#     target_compile_options(${PROJECT_NAME} PRIVATE -c -Wall -fpermissive)
-# endif()
-
-target_link_libraries(${PROJECT_NAME} log4cpp pthread pigpiod_if2 rt)
+target_link_libraries(${CANPI_EXECUTABLE} log4cpp pthread pigpiod_if2 rt)
