@@ -2,6 +2,8 @@
 .idea/workspace.xml
 *.swp
 build32/
+build-debug/
+src/canpi_server_version.cpp
 InstallingConfigs.cmake
 InstallingGeneral.cmake
 *.deb
