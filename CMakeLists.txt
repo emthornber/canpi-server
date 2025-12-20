@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.23)
 
 project(
     CanpiServer
-    VERSION 1.1.2
+    VERSION 1.1.3
     DESCRIPTION "CANPiCAP/CANPiZero Interface"
     LANGUAGES CXX
 )
