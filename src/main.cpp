@@ -41,7 +41,28 @@
 #include "sessionHandler.h"
 
 int running = 1;
+/*
+ * Signal functions
+ * Modern thinking is to use sigaction() instead of signal() so I've used the code
+ * suggested by W Richard Stevens in his book "Advanced Programming in the UNIX Environment"
+ * (Section 5.8, Vol 1, 2nd Edition, Addison-Wesley, 1992)
+ */
+sighandler_t signal(int signo, sighandler_t func)
+{
+    struct sigaction act, oact;
 
+    act.sa_handler = func;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+
+    if (signo == SIGALRM)
+        act.sa_flags |= SA_INTERRUPT; /* SunOS 4.x */
+
+    if (sigaction(signo, &act, &oact) < 0)
+        return (SIG_ERR);
+    return (oact.sa_handler);
+}
+// signal handler
 void sigterm(int signo)
 {
     running = 0;
@@ -83,6 +104,11 @@ int main()
     signal(SIGTERM, sigterm);
     signal(SIGHUP, sigterm);
     signal(SIGINT, sigterm);
+    // Ignore SIGPIPE
+    // This is to avoid the SIGPIPE signal when writing to a closed socket.
+    // This is a problem when using the TCP server. If the client closes the
+    // connection and we try to write to it we get a SIGPIPE signal.
+    signal(SIGPIPE, SIG_IGN);
 
     //****************
     // default config

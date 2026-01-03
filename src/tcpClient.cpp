@@ -136,7 +136,7 @@ void tcpClient::run(void *param)
             logger->debug("[%d] [tcpClient] Error while receiving data from ED %d", id, nbytes);
             /*
              * mark the existing sessions as orphan
-             * in case the client disconnection was not proper done
+             * in case the client disconnection was not properly done
              */
             std::map<int, edSession *>::iterator it = sessions.begin();
             while (it != sessions.end())
@@ -159,12 +159,13 @@ void tcpClient::run(void *param)
                 logger->debug("[%d][tcpClient] Failed to process the can message\n%s", id, ex.what());
             }
         }
-        if (nbytes == 0)
+        else
         {
+            // nbytes == 0
             logger->debug("[%d] [tcpClient] 0 bytes received. disconnecting", id);
             /*
              * mark the existing sessions as orphan
-             * in case the client disconnection was not proper done
+             * in case the client disconnection was not properly done
              */
             std::map<int, edSession *>::iterator it = sessions.begin();
             while (it != sessions.end())
@@ -174,12 +175,11 @@ void tcpClient::run(void *param)
                 it++;
             }
             running = 0;
-            break;
         }
     }
     logger->info("[%d] [tcpClient] Quiting client connection ip:%s id:%d.", id, ip.c_str(), id);
 
-    usleep(2000 * 1000); // 1sec give some time for any pending thread to finish
+    usleep(2000 * 1000); // 2 sec give some time for any pending thread to finish
     try
     {
         pthread_cancel(kalive);
@@ -424,13 +424,13 @@ void tcpClient::handleEDMessages(char *msgptr)
     }
     catch (const std::runtime_error &ex)
     {
-        logger->debug("[tcpClient] Not runtime error cought. %s", ex.what());
-        std::cout << "[tcpClient] Not runtime error cought" << ex.what() << std::endl;
+        logger->debug("[tcpClient] Not runtime error caught. %s", ex.what());
+        std::cout << "[tcpClient] Not runtime error caught" << ex.what() << std::endl;
     }
     catch (...)
     {
-        logger->debug("[tcpClient] Not runtime error cought");
-        std::cout << "[tcpClient] Not runtime error cought" << std::endl;
+        logger->debug("[tcpClient] Not runtime error caught");
+        std::cout << "[tcpClient] Not runtime error caught" << std::endl;
     }
 }
 
@@ -690,10 +690,21 @@ void tcpClient::sendToEd(string msg)
 {
     unsigned int nbytes;
     logger->notice("[%d] [tcpClient] Send to ED:%s", id, msg.c_str());
-    nbytes = write(client_sock, msg.c_str(), msg.length());
-    if (nbytes != msg.length())
+    try
     {
-        logger->error("[tcpClient] Fail to send message %s to ED", id, msg.c_str());
+        nbytes = write(client_sock, msg.c_str(), msg.length());
+        if (nbytes != msg.length())
+        {
+            logger->error("[%d] [tcpClient] Failed to send full message %s to ED", id, msg.c_str());
+        }
+    }
+    catch (const std::runtime_error &ex)
+    {
+        logger->error("[%d] [tcpClient] Failed to send message %s to ED (%s)", id, msg.c_str(), ex.what());
+    }
+    catch (...)
+    {
+        logger->error("[%d] [tcpClient] Failed to send message %s to ED - unexpected error", id, msg.c_str());
     }
 }
 // return the loco
@@ -745,7 +756,7 @@ void tcpClient::handleReleaseSession(string message)
     int i = message.find("<;>r");
     byte sesid;
     char stype = message.c_str()[1];
-    bool special_release = false; // defined for the whithrottle when received MT-*<;>r should send back the command without the 'r'
+    bool special_release = false; // defined for the withrottle when received MT-*<;>r - should send back the command without the 'r'
     string spmsg;
 
     if (i > 0)
@@ -780,7 +791,7 @@ void tcpClient::handleReleaseSession(string message)
             {
                 if (it->second->isSessionSet())
                 {
-                    logger->info("[%d] [tcpClient] Dealocating loco %d", id, it->second->getLoco());
+                    logger->info("[%d] [tcpClient] Deallocating loco %d", id, it->second->getLoco());
                 }
                 session_handler->deleteEDSession(it->second->getSessionUid());
                 sessions.erase(it);
