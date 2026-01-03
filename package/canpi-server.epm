@@ -57,6 +57,7 @@ $candev=/proc/device-tree/can0_osc
 %requires debconf
 %requires can-utils
 %requires liblog4cpp5v5
+%requires libgpiod3
 
 d 755 root root /etc -
 d 755 root root /etc/logrotate.d -

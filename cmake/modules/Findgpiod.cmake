@@ -1,4 +1,4 @@
-# from Earthly but adjusted for pigpio
+# from Earthly but adjusted for libgpiod
 
 include(FindPackageHandleStandardArgs)
 
