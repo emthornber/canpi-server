@@ -33,7 +33,7 @@ set(CANPI_EXECUTABLE canpid)
 
 # from Earthly
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
-find_package(pigpio REQUIRED)
+find_package(gpiod REQUIRED)
 find_package(log4cpp REQUIRED)
 
 # Define targets and sources
