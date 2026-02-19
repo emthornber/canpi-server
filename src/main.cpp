@@ -124,9 +124,9 @@ int main()
     bool start_ed_server = false;
     int gridport = 5550;
     int canid = 100;
-    int pb_pin = 4;
-    int gled_pin = 18;
-    int yled_pin = 27;
+    int pb_pin = 17;
+    int gled_pin = 24;
+    int yled_pin = 23;
     int node_number = 4321;
     log4cpp::Category &logger = log4cpp::Category::getRoot();
     nodeConfigurator *config = new nodeConfigurator(configfile, &logger);

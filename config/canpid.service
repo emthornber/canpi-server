@@ -7,8 +7,6 @@ After=network-online.target
 Wants=network-online.target
 Wants=canpi-ssr.service
 Before=canpi-ssr.service
-Wants=pigpiod.service
-After=pigpiod.service
 
 [Service]
 Type=forking

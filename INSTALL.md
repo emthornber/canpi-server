@@ -7,21 +7,22 @@ and contained in an Apt Repository.
 (`emthornber/canpi-server`)
 
 - The Apt repository is available at [MERG-DEV Apt
-Repository](https://emthornber.github.io/rpirepo).  Visiting the site displays instructions
+Repository](https://emthornber.github.io/RPi13Repo).  Visiting the site displays instructions
 on how to setup the apt configuration to access the MERG-DEV repository along
 with a downloadable script to carry out those instructions.
 
 ## Compiling
 
-The executable needs the [log4cpp](https://log4cpp.sourceforge.net) shared
-library and the [pigpio](https://abyz.me.uk/rpi/pigpio/) daemon and interface
-developement library (which is normally installed as part of the RPiOS image).
+The executable needs the [log4cpp](https://log4cpp.sourceforge.net) 
+and [libgpiod](https://github.com/brgl/libgpiod/) shared libraries and interface
+development libraries.
 ```
 sudo apt install liblog4cpp-doc liblog4cpp5-dev liblog5v5
+sudo apt install libgpiod-doc libgpiod-dev libgpiod3
 ```
 
 The .deb package is built using Easy Package Manager (EPM) (`emthornber/epm` tag
-`v5.0.1rc2`) which is built from source using the usual autotools incantation
+`v5.0.1`) which is built from source using the usual autotools incantation
 ```
 ./configure
 make
@@ -39,10 +40,10 @@ cmake --build build
 
 After a successful build there is a Debian package (and a portable tarball) in `./package` e.g.
 ```
-canpi-server-1.1.2-linux-6.6-armhf.deb
-canpi-server-1.1.2-linux-6.6-armhf.tar.gz
+canpi-server-2.0.0-trixie-armhf.deb
+canpi-server-2.0.0-trixie-armhf.tar.gz
 ```
 which can be installed using `apt`
 ```
-sudo apt install ./package/canpi-server-1.1.2-linux-6.6-armhf.deb
+sudo apt install ./package/canpi-server-2.0.0-trixie-armhf.deb
 ```

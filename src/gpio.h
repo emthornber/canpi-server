@@ -2,7 +2,7 @@
 #define GPIO_H
 
 #include <log4cpp/Category.hh>
-#include <pigpiod_if2.h>
+#include <gpiod.h>
 #include <string>
 #include <memory>
 

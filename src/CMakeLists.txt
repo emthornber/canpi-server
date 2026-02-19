@@ -36,4 +36,4 @@ target_include_directories(${CANPI_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-target_link_libraries(${CANPI_EXECUTABLE} log4cpp pthread pigpiod_if2 rt)
+target_link_libraries(${CANPI_EXECUTABLE} log4cpp pthread gpiod rt)
