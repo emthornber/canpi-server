@@ -1,22 +1,23 @@
 #include "gpio.h"
+#include <errno.h>
 #include <sstream>
 #include <unordered_map>
 
 namespace
 {
-    const std::unordered_map<int, std::string> err_strings = {
-        {PI_BAD_GPIO, "PI_BAD_GPIO"},
-        {PI_BAD_MODE, "PI_BAD_MODE"},
-        {PI_BAD_LEVEL, "PI_BAD_LEVEL"},
-        {PI_NOT_PERMITTED, "PI_NOT_PERMITTED "},
+    const ::std::unordered_map<int, ::std::string> err_strings = {
+        {GPIO_BAD_PIN, "GPIO_BAD_PIN"},
+        {GPIO_BAD_MODE, "GPIO_BAD_MODE"},
+        {GPIO_BAD_LEVEL, "GPIO_BAD_LEVEL"},
+        {GPIO_NOT_PERMITTED, "GPIO_NOT_PERMITTED "},
     };
-    const std::unordered_map<int, std::string> mode_strings = {
-        {static_cast<int>(Mode::GP_IN), "PI_INPUT"},
-        {static_cast<int>(Mode::GP_OUT), "PI_OUTPUT"},
+    const ::std::unordered_map<int, ::std::string> mode_strings = {
+        {static_cast<int>(Mode::GP_IN), "GPIO_INPUT"},
+        {static_cast<int>(Mode::GP_OUT), "GPIO_OUTPUT"},
     };
-    const std::unordered_map<int, std::string> level_strings = {
-        {static_cast<int>(Level::GP_OFF), "PI_OFF"},
-        {static_cast<int>(Level::GP_ON), "PI_ON"},
+    const ::std::unordered_map<int, ::std::string> level_strings = {
+        {static_cast<int>(Level::GP_OFF), "GPIO_OFF"},
+        {static_cast<int>(Level::GP_ON), "GPIO_ON"},
     };
 
     /**
@@ -25,53 +26,70 @@ namespace
      * @param key hash key
      * @return
      */
-    const char *state_to_text(const std::unordered_map<int, std::string> &table, int key)
+    const char *state_to_text(const ::std::unordered_map<int, ::std::string> &table, int key)
     {
         auto it = table.find(key);
         return it != table.end() ? it->second.c_str() : "UNKNOWN";
     }
 }
 
-gpio *gpio::_library = 0;
+GPIOChip *GPIOChip::_chip = 0;
 
 /**
  * @brief singleton ctor
  * @return
  */
-gpio *gpio::Library(log4cpp::Category *log4cpp)
+GPIOChip *GPIOChip::Chip(log4cpp::Category *log4cpp)
 {
-    if (_library == 0)
+    if (_chip == 0)
     {
-        _library = new gpio;
-        _library->logger = log4cpp;
+        _chip = new GPIOChip;
+        _chip->logger = log4cpp;
+        _chip->counter = 0;
     }
-    return _library;
+    // Increment the counter for the number of users of the GPIO Chip
+    _chip->counter++;
+
+    return _chip;
 }
 
-gpio::gpio() : pi(pigpio_start(nullptr, nullptr))
+GPIOChip::GPIOChip()
 {
-    if (pi < 0)
+    chip = gpiod_chip_open(CHIP_PATH);
+    if (!chip)
     {
-        std::stringstream errMsg;
-        errMsg << "Failed to connect to pigpio daemon (" << pi << ")";
-        throw std::runtime_error(errMsg.str().c_str());
+        logger->error("[gpio] Failed to open gpiochip at %s (Error: %d)", CHIP_PATH, errno);
     }
 }
 /**
  * @brief dtor
  */
-gpio::~gpio()
+GPIOChip::~GPIOChip()
 {
-    // Terminate connection to pigpio daemon and releases resources used by the
-    // library.
-    logger->debug("[gpio] pigpio_if2 library stopped");
-    pigpio_stop(pi);
+    _chip->counter--;
+    if (_chip->counter <= 0)
+    {
+        gpiod_chip_close(chip);
+        delete _chip;
+        _chip = nullptr;
+        logger->debug("[gpio] chip closed");
+    }
+    else
+    {
+        logger->debug("[gpio] chip still in use by %d pins", _chip->counter);
+    }
 }
 
+GPIOPin::GPIOPin(unsigned int offset, Mode direction, log4cpp::Category *log4cpp)
+{
+    chip = GPIOChip::Chip(log4cpp);
+    this->offset = offset;
+    setdir(direction);
+}
 /**
  * @brief set mode for a GPIO pin
  * @param pin_num pin number 0 - 53
- * @param dir mode PI_INPUT or PI_OUTPUT
+ * @param dir mode GPIO_INPUT or GPIO_OUTPUT
  * @return
  */
 int gpio::setdir_gpio(unsigned pin_num, Mode dir)
