@@ -1,5 +1,5 @@
 // from "Professional CMake: A Practical Guide" by Craig Scott
-#include "canpi_server_version.h"
+#include "canpi_server_version.hpp"
 
 std::string getCanpiServerVersion()
 {

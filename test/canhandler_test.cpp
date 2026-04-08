@@ -1,6 +1,6 @@
-#include "gtest/gtest.h"
-#include "gmock/gmock.h"
-#include "canHandler.h"
+#include "gtest/gtest.hpp"
+#include "gmock/gmock.hpp"
+#include "canHandler.hpp"
 
 class MockNodeConfigurator : public nodeConfigurator
 {

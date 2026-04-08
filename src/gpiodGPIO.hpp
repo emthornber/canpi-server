@@ -1,13 +1,16 @@
 #pragma once
 
-#include <gpio/IGpio.hpp>
+#include <gpio/IGpio.h>
 #include <filesystem>
 #include <memory>
 #include <string>
 
-// Forward declaration — keeps <gpiod.hpp> out of this header so that
+// Forward declaration — keeps <gpiod.h> out of this header so that
 // consumers of GpiodGpio.hpp do not need libgpiod on their include path.
-namespace gpiod { class chip; }
+namespace gpiod
+{
+    class chip;
+}
 
 /**
  * GPIO implementation for Linux using libgpiod (the modern character-device
@@ -28,7 +31,8 @@ namespace gpiod { class chip; }
  *   // Or specify a chip and consumer explicitly
  *   auto gpio = GpiodGpio::create("/dev/gpiochip4", "model-railway");
  */
-class GpiodGpio : public IGpio, public std::enable_shared_from_this<GpiodGpio> {
+class GpiodGpio : public IGpio, public std::enable_shared_from_this<GpiodGpio>
+{
 public:
     /**
      * The only correct way to construct a GpiodGpio.
@@ -38,19 +42,19 @@ public:
      *                  in gpioinfo output. Useful for diagnostics.
      */
     static std::shared_ptr<GpiodGpio> create(
-        const std::filesystem::path& chipPath = "/dev/gpiochip0",
-        const std::string& consumer = "railway");
+        const std::filesystem::path &chipPath = "/dev/gpiochip0",
+        const std::string &consumer = "railway");
 
     // Destructor is declared here and defined in the .cpp so that the
     // compiler sees the full definition of gpiod::chip when generating
     // the unique_ptr destructor.
     ~GpiodGpio() override;
 
-    std::unique_ptr<IInputPin>  makeInputPin(int pin)  override;
+    std::unique_ptr<IInputPin> makeInputPin(int pin) override;
     std::unique_ptr<IOutputPin> makeOutputPin(int pin) override;
 
 private:
-    GpiodGpio(const std::filesystem::path& chipPath, const std::string& consumer);
+    GpiodGpio(const std::filesystem::path &chipPath, const std::string &consumer);
 
     std::unique_ptr<gpiod::chip> chip_;
     std::string consumer_;

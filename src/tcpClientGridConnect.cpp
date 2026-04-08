@@ -1,4 +1,4 @@
-#include "tcpClientGridConnect.h"
+#include "tcpClientGridConnect.hpp"
 #include <stdio.h>
 
 /*

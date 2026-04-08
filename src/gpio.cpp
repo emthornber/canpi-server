@@ -1,4 +1,4 @@
-#include "gpio.h"
+#include "gpio.hpp"
 #include <errno.h>
 #include <sstream>
 #include <unordered_map>
@@ -153,7 +153,7 @@ int gpio::getval_gpio(unsigned pin_num, Level &val)
 // Utility routines
 /**
  * @brief Convert an error number to text
- * @param errnum Error number as defined in pigpio.h
+ * @param errnum Error number as defined in pigpio.hpp
  * @return
  */
 const char *gpio::err_to_text(int errnum)
@@ -163,7 +163,7 @@ const char *gpio::err_to_text(int errnum)
 
 /**
  * @brief Convert a level number to text
- * @param level level number as defined in pigpio.h
+ * @param level level number as defined in pigpio.hpp
  * @return
  */
 const char *gpio::level_to_text(int level)
@@ -173,7 +173,7 @@ const char *gpio::level_to_text(int level)
 
 /**
  * @brief Convert a mode number to text
- * @param mode mode number as defined in pigpio.h
+ * @param mode mode number as defined in pigpio.hpp
  * @return
  */
 const char *gpio::mode_to_text(int mode)

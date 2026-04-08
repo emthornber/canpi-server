@@ -19,12 +19,12 @@
 #include <mutex>
 #include <condition_variable>
 #include "utils.h"
-#include "opcodes.h"
-#include "gpio.h"
-#include "nodeConfigurator.h"
-#include "frameCAN.h"
-#include "tcpServer.h"
-#include "opc_codes.h"
+#include "opcodes.hpp"
+#include "gpio.hpp"
+#include "nodeConfigurator.hpp"
+#include "frameCAN.hpp"
+#include "tcpServer.hpp"
+#include "opc_codes.hpp"
 
 #define CAN_MSG_SIZE 8
 #define WAIT_ENUM 200        // ms

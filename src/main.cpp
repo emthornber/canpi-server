@@ -35,10 +35,10 @@
 
 // project classes
 #include "utils.h"
-#include "canHandler.h"
-#include "Turnout.h"
-#include "nodeConfigurator.h"
-#include "sessionHandler.h"
+#include "canHandler.hpp"
+#include "Turnout.hpp"
+#include "nodeConfigurator.hpp"
+#include "sessionHandler.hpp"
 
 int running = 1;
 /*

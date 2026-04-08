@@ -13,7 +13,7 @@ set(CANPI_SOURCES
     Turnout.cpp
 )
 
-list(TRANSFORM CANPI_SOURCES REPLACE "[.]cpp" ".h" OUTPUT_VARIABLE CANPI_HEADERS)
+list(TRANSFORM CANPI_SOURCES REPLACE "[.]cpp" ".hpp" OUTPUT_VARIABLE CANPI_HEADERS)
 
 # from "Professional CMake: A Practical Guide" by Craig Scott"
 configure_file(
@@ -26,7 +26,7 @@ add_library(
     canpi_objs
     OBJECT
     ${CANPI_SOURCES} ${CANPI_HEADERS}
-    canpi_server_version.cpp canpi_server_version.h
+    canpi_server_version.cpp canpi_server_version.hpp
 )
 
 add_executable(${CANPI_EXECUTABLE} $<TARGET_OBJECTS:canpi_objs> main.cpp)

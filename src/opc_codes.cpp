@@ -1,33 +1,39 @@
-#include "opc_codes.h"
+#include "opc_codes.hpp"
 
-opc_container::opc_container(){
+opc_container::opc_container()
+{
     this->populate();
 }
 
-opc_code* opc_container::getByCode(int code){
+opc_code *opc_container::getByCode(int code)
+{
     opc_code *p_opc_code;
-    if (opcs_by_code.find(code) != opcs_by_code.end()){
+    if (opcs_by_code.find(code) != opcs_by_code.end())
+    {
         p_opc_code = opcs_by_code[code];
         return p_opc_code;
     }
     return NULL;
 }
-opc_code* opc_container::getByName(string name){
+opc_code *opc_container::getByName(string name)
+{
     opc_code *p_opc_code;
-    if (opcs_by_name.find(name) != opcs_by_name.end()){
+    if (opcs_by_name.find(name) != opcs_by_name.end())
+    {
         p_opc_code = opcs_by_name[name];
         return p_opc_code;
     }
     return NULL;
 }
 
-
-void opc_container::populate_both(int code, string name, string description){
-    opcs_by_code.insert(std::pair<int, opc_code*>(code, new opc_code(code, name, description)));
-    opcs_by_name.insert(std::pair<string, opc_code*>(name, new opc_code(code, name, description)));
+void opc_container::populate_both(int code, string name, string description)
+{
+    opcs_by_code.insert(std::pair<int, opc_code *>(code, new opc_code(code, name, description)));
+    opcs_by_name.insert(std::pair<string, opc_code *>(name, new opc_code(code, name, description)));
 }
 
-void opc_container::populate(){
+void opc_container::populate()
+{
     populate_both(OPC_ACK, "OPC_ACK", "General ack");
     populate_both(OPC_NAK, "OPC_NAK", "General nak");
     populate_both(OPC_HLT, "OPC_HLT", "Bus Halt");
