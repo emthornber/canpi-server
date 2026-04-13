@@ -1,5 +1,4 @@
-#ifndef CANHANDLER_H
-#define CANHANDLER_H
+#pragma once
 
 #include <linux/can.h>
 #include <net/if.h>
@@ -52,7 +51,7 @@ public:
     void setCanId(int id);
     int getCanId();
     void setTcpServer(tcpServer *tcpserver);
-    void setPins(int pbpin, int glpin, int ylpin);
+    void setPins(int pbpin, int gledSLIM, int yledFLIM);
     void setNodeNumber(int nn);
     int getNodeNumber() { return node_number; };
     void setConfigurator(nodeConfigurator *config);
@@ -91,11 +90,11 @@ private:
     /**
      * GPIO pin numbers
      */
-    unsigned pbpin; // Push button
-    unsigned glpin; // Green LED - SLiM mode
-    unsigned ylpin; // Yellow LED - FLiM mode
+    PushButtonSensor pbpin; // Push button
+    LEDController gledSLIM; // Green LED - SLiM mode
+    LEDController yledFLIM; // Yellow LED - FLiM mode
     // GPIO pigpiod_if2 library wrapper class
-    gpio *gpio_lib;
+    std::shared_ptr<GpiodGpio> gpio;
     vector<int> canids;
     // auto enum timers
     long double sysTimeMS_start;
@@ -159,5 +158,3 @@ private:
         out_msgs.push(frame);
     }
 };
-
-#endif // CANHANDLER_H

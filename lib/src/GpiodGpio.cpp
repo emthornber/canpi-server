@@ -1,9 +1,9 @@
 #include "GpiodGpio.hpp"
 
-#include <gpiod.h>
+#include <gpiod.hpp>
 
-#include <gpio/IInputPin.h>
-#include <gpio/IOutputPin.h>
+#include <gpio/IInputPin.hpp>
+#include <gpio/IOutputPin.hpp>
 
 // ---------------------------------------------------------------------------
 // Pin proxy implementations — internal to this translation unit

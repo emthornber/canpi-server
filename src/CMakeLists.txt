@@ -28,12 +28,19 @@ add_library(
     ${CANPI_SOURCES} ${CANPI_HEADERS}
     canpi_server_version.cpp canpi_server_version.hpp
 )
-
-add_executable(${CANPI_EXECUTABLE} $<TARGET_OBJECTS:canpi_objs> main.cpp)
-target_include_directories(${CANPI_EXECUTABLE}
+target_include_directories(canpi_objs
     PRIVATE
-    # where the executable itself will look for its internal headers
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    # where the library itself will look for its external headers
+    ${CanpiServer_SOURCE_DIR}/lib/include
 )
 
-target_link_libraries(${CANPI_EXECUTABLE} log4cpp pthread gpiod rt)
+add_executable(${CANPI_EXECUTABLE} main.cpp)
+target_link_libraries(${CANPI_EXECUTABLE}
+    PRIVATE
+    canpi_objs
+    gpio-gpiodcxx
+    gpiodcxx
+    log4cpp
+    pthread
+    rt
+)

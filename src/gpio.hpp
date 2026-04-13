@@ -1,78 +1,51 @@
-#ifndef GPIO_H
-#define GPIO_H
+#pragma once
 
 #include <log4cpp/Category.hh>
 #include <gpiod.h>
 #include <string>
 #include <memory>
 #include <errno.h>
+#include "gpio/IGpio.hpp"
+#include "gpio/IInputPin.hpp"
+#include "gpio/IOutputPin.hpp"
 
-enum Mode
-{
-    GP_IN = GPIOD_LINE_DIRECTION_INPUT,
-    GP_OUT = GPIOD_LINE_DIRECTION_OUTPUT,
-};
+#include "GpiodGpio.hpp"
 
-enum Level
-{
-    GP_OFF = GPIOD_LINE_VALUE_INACTIVE,
-    GP_ON = GPIOD_LINE_VALUE_ACTIVE,
-};
-
-/** GPIO Chip Class
- * @brief Singleton wrapper class for access to the GPIO Chip.
- * @details The class provides access to the gpio chip via the libgpiod C library
+/**
+ * Controls a single LED
+ * Drives an output pin high for on, low for off.
  */
-
-class GPIOChip
+class LEDController
 {
 public:
-    static GPIOChip *Chip(log4cpp::Category *logger);
-    virtual ~GPIOChip();
+    LEDController() = default;
+    explicit LEDController(std::unique_ptr<IOutputPin> pin)
+        : pin_(std::move(pin)) {}
 
-protected:
-    GPIOChip();
+    void setOn();
+    void setOff();
+
+    bool isOn() const;
+    int pinNumber() const;
 
 private:
-    static GPIOChip *_chip;
-    log4cpp::Category *logger;
-    const char *CHIP_PATH = "/dev/gpiochip0";
-    struct gpiod_chip *chip = nullptr;
-    int counter = 0;
-    const char *err_to_text(int);
-    const char *level_to_text(int);
-    const char *mode_to_text(int);
+    std::unique_ptr<IOutputPin> pin_;
 };
 
-/** GPIO Pin Class
- * @brief Wrapper class for access to a GPIO pin.
- * @details The class provides access to a GPIO pin via the libgpiod C library
+/**
+ * Reads a push button state
+ * The input pin reads high when the button is pressed.
  */
-class GPIOPin
+class PushButtonSensor
 {
 public:
-    GPIOPin(unsigned int offset, Mode direction, log4cpp::Category *log4cpp);
-    virtual ~GPIOPin();
+    PushButtonSensor() = default;
+    explicit PushButtonSensor(std::unique_ptr<IInputPin> pin)
+        : pin_(std::move(pin)) {}
 
-    int configure_output_pin(unsigned int offset);
-    int setdir_gpio(unsigned pin_num, Mode dir);   // Set GPIO Direction
-    int setval_gpio(unsigned pin_num, Level val);  // Set GPIO Value (output pins)
-    int getval_gpio(unsigned pin_num, Level &val); // Get GPIO Value (input/ output pins)
-    int setdir(Mode dir);
-    int setval(Level val);
-    int getval(Level &val);
-
-protected:
-    GPIOPin();
+    bool isPressed() const;
+    int pinNumber() const;
 
 private:
-    GPIOChip *chip;
-    unsigned int offset;
-    Mode direction;
-    struct gpiod_request_config *request_config = nullptr;
-    struct gpiod_line_config *line_config = nullptr;
-    struct gpiod_line_settings *line_settings = nullptr;
-    struct gpiod_line_request *line_request = nullptr;
+    std::unique_ptr<IInputPin> pin_;
 };
-
-#endif // GPIO_H

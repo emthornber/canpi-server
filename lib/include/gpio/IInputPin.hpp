@@ -5,7 +5,8 @@
  * Acquired from IGpio::makeInputPin().
  * The proxy keeps the parent IGpio object alive via a shared_ptr internally.
  */
-class IInputPin {
+class IInputPin
+{
 public:
     virtual ~IInputPin() = default;
 

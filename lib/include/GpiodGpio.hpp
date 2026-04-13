@@ -1,6 +1,6 @@
 #pragma once
 
-#include <gpio/IGpio.h>
+#include <gpio/IGpio.hpp>
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -43,7 +43,7 @@ public:
      */
     static std::shared_ptr<GpiodGpio> create(
         const std::filesystem::path &chipPath = "/dev/gpiochip0",
-        const std::string &consumer = "railway");
+        const std::string &consumer = "CANPiCAP");
 
     // Destructor is declared here and defined in the .cpp so that the
     // compiler sees the full definition of gpiod::chip when generating

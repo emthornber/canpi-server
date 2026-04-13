@@ -10,13 +10,13 @@ project(
 # from "Professional CMake: A Practical Guide" by Craig Scott
 if(DEFINED CMAKE_CXX_STANDARD)
     if(CMAKE_CXX_STANDARD EQUAL 98 OR
-       CMAKE_CXX_STANDARD LESS 11)
+       CMAKE_CXX_STANDARD LESS 17)
         message(FATAL_ERROR
-            "This project requires at least C++11"
+            "This project requires at least C++17"
         )
     endif()
 else()
-    set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD 17)
 endif()
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -33,10 +33,11 @@ set(CANPI_EXECUTABLE canpid)
 
 # from Earthly
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
-find_package(gpiod REQUIRED)
+find_package(gpiodcxx REQUIRED)
 find_package(log4cpp REQUIRED)
 
 # Define targets and sources
+add_subdirectory(lib)
 add_subdirectory(src)
 
 # enable testing and define tests

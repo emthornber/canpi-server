@@ -29,7 +29,7 @@ if (log4cpp_FOUND)
     if (NOT TARGET log4cpp::log4cpp)
 	add_library(log4cpp::log4cpp UNKNOWN IMPORTED)
 	set_target_properties(log4cpp::log4cpp PROPERTIES
-	    INTERFACE_INCLUDE_DIECTORIES "${LOG4CPP_INCLUDES}"
+	    INTERFACE_INCLUDE_DIRECTORIES "${LOG4CPP_INCLUDES}"
 	    IMPORTED_LOCATION "${LOG4CPP_LIBRARY}")
     endif()
 endif()

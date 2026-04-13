@@ -18,7 +18,8 @@
  *   auto motorPin = gpio->makeOutputPin(17);
  *   auto sensorPin = gpio->makeInputPin(5);
  */
-class IGpio {
+class IGpio
+{
 public:
     virtual ~IGpio() = default;
 

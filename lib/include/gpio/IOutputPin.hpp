@@ -5,7 +5,8 @@
  * Acquired from IGpio::makeOutputPin().
  * The proxy keeps the parent IGpio object alive via a shared_ptr internally.
  */
-class IOutputPin {
+class IOutputPin
+{
 public:
     virtual ~IOutputPin() = default;
 

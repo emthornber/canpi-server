@@ -37,50 +37,33 @@ int canHandler::getCanId()
  */
 void canHandler::setPins(int pbutton, int gledpin, int yledpin)
 {
-    pbpin = pbutton;
-    glpin = gledpin;
-    ylpin = yledpin;
     string s;
     stringstream ss;
     // GPIO Configuration
-    // Instantiate the singleton class for pigpiod daemon access
-    gpio_lib = gpio::Library(logger);
-    // Setup push button pin
-    int result = gpio_lib->setdir_gpio(pbpin, Mode::GP_IN);
-    if (result)
-    {
-        // Error returned
-        logger->error("[canHandler] Failed to set direction for push button (gpio pin %d)",
-                      pbpin);
-    }
-    // Setup green LED pin
-    result = gpio_lib->setdir_gpio(glpin, Mode::GP_OUT);
-    if (result)
-    {
-        // Error returned
-        logger->error("[canHandler] Failed to set direction for green LED (gpio pin %d)",
-                      glpin);
-    }
-    // Setup yellow LED pin
-    result = gpio_lib->setdir_gpio(ylpin, Mode::GP_OUT);
-    if (result)
-    {
-        // Error returned
-        logger->error("[canHandler] Failed to set direction for yellow LED (gpio pin %d)",
-                      ylpin);
-    }
+    // Instantiate the root class for gpiod library access
+    // THe default 'chipPath' is "/dev/gpiochip0" but can be overridden by passing
+    // a different value to the create() method.
+    // The default 'consumer' label is "CANPiCAP" but can be overridden by passing
+    // a different value to the create() method
+    gpio = GpiodGpio::create();
 
+    // Set up pin proxies and hand them to the subsystem objects.
+    // Once handed over, the subsystems own the pins exclusively;
+    // gpio itself holds no references back to them.
+    pbpin = PushButtonSensor(gpio->makeInputPin(pbutton));
+    gledSLIM = LEDController(gpio->makeOutputPin(gledpin));
+    yledFLIM = LEDController(gpio->makeOutputPin(yledpin));
     if (config->getNodeMode() == MTYP_SLIM)
     {
         logger->info("[canHandler] Node is in SLIM mode");
-        gpio_lib->setval_gpio(glpin, Level::GP_ON);
-        gpio_lib->setval_gpio(ylpin, Level::GP_OFF);
+        gledSLIM.setOn();
+        yledFLIM.setOff();
     }
     else
     {
         logger->info("[canHandler] Node is in FLIM mode");
-        gpio_lib->setval_gpio(glpin, Level::GP_OFF);
-        gpio_lib->setval_gpio(ylpin, Level::GP_ON);
+        gledSLIM.setOff();
+        yledFLIM.setOn();
     }
 }
 /**
@@ -280,8 +263,8 @@ void canHandler::stop()
 {
     send_end_event();
     usleep(200 * 1000); // wait for the message to be sent
-    gpio_lib->setval_gpio(glpin, Level::GP_OFF);
-    gpio_lib->setval_gpio(ylpin, Level::GP_OFF);
+    gledSLIM.setOff();
+    yledFLIM.setOff();
     running = 0;
 }
 /**
@@ -981,8 +964,8 @@ void canHandler::handleCBUSEvents(frameCAN canframe)
         }
         setup_mode = false;
         blinking = false;
-        gpio_lib->setval_gpio(glpin, Level::GP_OFF);
-        gpio_lib->setval_gpio(ylpin, Level::GP_ON);
+        gledSLIM.setOff();
+        yledFLIM.setOn();
         logger->info("Node was in SLIM. Setting to FLIM");
         config->setNodeMode(1); // FLIM
         logger->info("[canHandler] Finished setup. New node number is %d", node_number);
@@ -1151,8 +1134,6 @@ void canHandler::restart_module(SCRIPT_ACTIONS action)
 
 void canHandler::run_pb_logic(void *param)
 {
-    Level pbstate;
-    Level ledstate;
     char sendframe[CAN_MSG_SIZE];
     byte Lb, Hb;
 
@@ -1188,21 +1169,19 @@ void canHandler::run_pb_logic(void *param)
         {
             if (((time(0) * 1000) - ledtime) > BLINK_INTERVAL)
             {
-                gpio_lib->getval_gpio(ylpin, ledstate);
-                if (ledstate == Level::GP_OFF)
+                if (yledFLIM.isOn())
                 {
-                    gpio_lib->setval_gpio(ylpin, Level::GP_ON);
+                    yledFLIM.setOff();
                 }
                 else
                 {
-                    gpio_lib->setval_gpio(ylpin, Level::GP_OFF);
+                    yledFLIM.setOn();
                 }
                 ledtime = time(0) * 1000;
             }
         }
 
-        gpio_lib->getval_gpio(pbpin, pbstate);
-        if (pbstate == Level::GP_OFF)
+        if (pbpin.isPressed())
         {
             // button pressed
             if (!pb_pressed)
@@ -1218,7 +1197,7 @@ void canHandler::run_pb_logic(void *param)
                 if (((ledtime - nnPressTime) >= NN_PB_TIME) && !blinking)
                 {
                     blinking = true;
-                    gpio_lib->setval_gpio(glpin, Level::GP_ON);
+                    gledSLIM.setOn();
                 }
             }
             continue; // back to the loop
@@ -1244,8 +1223,8 @@ void canHandler::run_pb_logic(void *param)
                 { // change from FLIM to SSLIM
                     logger->info("Node was in FLIM. Setting to SLIM");
                     config->setNodeMode(MTYP_SLIM); // SLIM
-                    gpio_lib->setval_gpio(glpin, Level::GP_ON);
-                    gpio_lib->setval_gpio(ylpin, Level::GP_OFF);
+                    gledSLIM.setOn();
+                    yledFLIM.setOff();
 
                     sendframe[0] = OPC_NNREL;
                     sendframe[1] = Hb;
@@ -1282,14 +1261,14 @@ void canHandler::run_pb_logic(void *param)
                 blinking = false;
                 if (config->getNodeMode() == MTYP_FLIM)
                 { // FLIM
-                    gpio_lib->setval_gpio(glpin, Level::GP_OFF);
-                    gpio_lib->setval_gpio(ylpin, Level::GP_ON);
+                    gledSLIM.setOff();
+                    yledFLIM.setOn();
                     logger->info("Node in FLIM mode");
                 }
                 else
                 {
-                    gpio_lib->setval_gpio(glpin, Level::GP_ON);
-                    gpio_lib->setval_gpio(ylpin, Level::GP_OFF);
+                    gledSLIM.setOn();
+                    yledFLIM.setOff();
                     logger->info("Node in SLIM mode");
                 }
             }
