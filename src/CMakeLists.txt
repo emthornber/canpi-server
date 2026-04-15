@@ -37,7 +37,7 @@ target_include_directories(canpi_objs
 add_executable(${CANPI_EXECUTABLE} main.cpp)
 target_link_libraries(${CANPI_EXECUTABLE}
     PRIVATE
-    canpi_objs
+    $<TARGET_OBJECTS:canpi_objs>
     gpio-gpiodcxx
     gpiodcxx
     log4cpp

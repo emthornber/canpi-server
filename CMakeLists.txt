@@ -36,8 +36,15 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 find_package(gpiodcxx REQUIRED)
 find_package(log4cpp REQUIRED)
 
+# Define directories for config, package, and scripts
+set(CPS_CONFIG  ${CanpiServer_SOURCE_DIR}/config )
+set(CPS_PKG     ${CanpiServer_SOURCE_DIR}/package )
+set(CPS_SCRIPTS ${CanpiServer_SOURCE_DIR}/scripts )
+
 # Define targets and sources
+add_subdirectory(config)
 add_subdirectory(lib)
+add_subdirectory(package)
 add_subdirectory(src)
 
 # enable testing and define tests
@@ -56,38 +63,3 @@ endif(
 # from Earthly
 include(GNUInstallDirs)
 install(TARGETS ${CANPI_EXECUTABLE} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-
-set(CPS_CONFIG  ${CMAKE_CURRENT_SOURCE_DIR}/config )
-set(CPS_PKG     ${CMAKE_CURRENT_SOURCE_DIR}/package )
-set(CPS_SCRIPTS ${CMAKE_CURRENT_SOURCE_DIR}/scripts )
-
-add_custom_command(OUTPUT ${CPS_CONFIG}/canpi.cfg
-    COMMAND python3 ${CPS_SCRIPTS}/create_canpi_cfg.py < ${CPS_CONFIG}/canpi-config-defn.json > ${CPS_CONFIG}/canpi.cfg
-    DEPENDS ${CPS_CONFIG}/canpi-config-defn.json
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    VERBATIM
-)
-
-add_custom_target(canpi-cfg ALL
-    DEPENDS ${CPS_CONFIG}/canpi.cfg
-)
-
-file(
-    GLOB_RECURSE
-    CONFIG_DEPS
-    ${CPS_CONFIG}/*
-)
-
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.package
-    COMMAND BFILE=$<TARGET_FILE:${CANPI_EXECUTABLE}> ODIR=${CPS_PKG} PKGNAME=canpi-server SDIR=${CMAKE_CURRENT_SOURCE_DIR} VERS=${PROJECT_VERSION} make -f ${CPS_PKG}/Makefile all && touch ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.package
-    DEPENDS ${CPS_PKG}/canpi-server.epm $<TARGET_FILE:${CANPI_EXECUTABLE}> ${CPS_SCRIPTS}/canpidctl.bash ${CPS_PKG}/Makefile ${CONFIG_DEPS} ${CPS_CONFIG}/canpi.cfg
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
-# Building the package is a separate target
-# that can be called from the command line
-# with "make canpi-server-package"
-# or "cmake --build build-debug --target canpi-server-package"
-add_custom_target(canpi-server-package
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.package
-)
