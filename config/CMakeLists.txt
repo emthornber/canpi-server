@@ -1,12 +1,10 @@
-add_custom_command(OUTPUT canpi.cfg
+add_custom_target(canpi-cfg
+    ALL
     COMMAND python3 ${CPS_SCRIPTS}/create_canpi_cfg.py < canpi-config-defn.json > canpi.cfg
-    DEPENDS canpi-config-defn.json
+    DEPENDS ${CPS_CONFIG}/canpi-config-defn.json ${CPS_SCRIPTS}/create_canpi_cfg.py
+    BYPRODUCTS ${CPS_CONFIG}/canpi.cfg
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     VERBATIM
-)
-
-add_custom_target(canpi-cfg ALL
-    DEPENDS ${CPS_CONFIG}/canpi.cfg
 )
 
 file(
