@@ -406,7 +406,12 @@ void canHandler::run_queue_reader(void *param)
 
         /* block this thread until another there is something in the queue. */
         pthread_mutex_lock(&m_mutex_in);
-        pthread_cond_wait(&m_condv_in, &m_mutex_in);
+        // Wait only while there is nothing to do. A signal given while this thread
+        // was busy is not kept, so the queue is checked before waiting.
+        while (running && in_msgs.empty())
+        {
+            pthread_cond_wait(&m_condv_in, &m_mutex_in);
+        }
 
         if (in_msgs.empty())
         {
@@ -577,7 +582,12 @@ void canHandler::run_out(void *param)
     {
 
         pthread_mutex_lock(&m_mutex);
-        pthread_cond_wait(&m_condv, &m_mutex);
+        // Wait only while there is nothing to do. A signal given while this thread
+        // was busy is not kept, so the queue is checked before waiting.
+        while (running && out_msgs.empty())
+        {
+            pthread_cond_wait(&m_condv, &m_mutex);
+        }
 
         if (out_msgs.empty())
         {
@@ -1135,7 +1145,7 @@ void canHandler::restart_module(SCRIPT_ACTIONS action)
     usleep(1000 * 1000); // 1s
     if (fork() == 0)
     {
-        logger->info("[canHandler] Restarting the module. [%s]", command.str());
+        logger->info("[canHandler] Restarting the module. [%s]", command.str().c_str());
         system(command.str().c_str());
         exit(0);
     }
