@@ -8,6 +8,7 @@
 #include <vector>
 #include <log4cpp/Category.hh>
 #include <map>
+#include <pthread.h>
 #include <fstream>
 #include <algorithm>
 #include "utils.h"
@@ -240,6 +241,7 @@ class nodeConfigurator
         void momentaryFnsToNVs();
         vector<string> & split(const string &s, char delim, vector<string> &elems);
         std::map<string,string> config;
+        pthread_mutex_t m_mutex_config; // guards config
         string removeChar(string val,char c);
         string cleanString(string val);
         std::pair <string,string> getpair(string val);
