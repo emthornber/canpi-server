@@ -1431,7 +1431,7 @@ void tcpClient::handleTurnout(string message)
     }
     if (!turnouts->exists(tcode))
     {
-        logger->debug("[%d] [tcpClient] Turnout $d does not exist. Inserting", id, tcode);
+        logger->debug("[%d] [tcpClient] Turnout %d does not exist. Inserting", id, tcode);
         turnouts->addTurnout(scode, tcode);
         if (!turnouts->exists(tcode))
         {
@@ -1525,7 +1525,7 @@ void tcpClient::handleTurnoutGeneric(string message)
     }
     if (!turnouts->exists(tcode))
     {
-        logger->debug("[%d] [tcpClient] Turnout $d does not exist. Inserting", id, tcode);
+        logger->debug("[%d] [tcpClient] Turnout %d does not exist. Inserting", id, tcode);
         turnouts->addTurnout(scode, tcode);
         if (!turnouts->exists(tcode))
         {
