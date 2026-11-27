@@ -1426,13 +1426,8 @@ bool nodeConfigurator::setOrphanTimeout(int val){
 }
 
 string nodeConfigurator::removeChar(string val,char c){
-   int i = val.find(c);
-   string s = val;
-   while (i > 0){
-      s.erase(i,1);
-      i = s.find(c);
-   }
-   return s;
+   val.erase(std::remove(val.begin(), val.end(), c), val.end());
+   return val;
 }
 
 string nodeConfigurator::cleanString(string val){
@@ -1450,8 +1445,9 @@ std::pair <string,string> nodeConfigurator::getpair(string val){
    string s;
 
    s = cleanString(val);
-   int i = val.find("=");
-   if (i > 0){
+   // find '=' in the cleaned line, which is the one split below
+   size_t i = s.find('=');
+   if (i != string::npos && i > 0){
       key = s.substr(0,i);
       value = s.substr(i + 1, s.length());
       ret = std::make_pair(key, value);
