@@ -1,4 +1,8 @@
 #include <utility>
+#include <fcntl.h>
+#include <limits.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include "nodeConfigurator.h"
 
 namespace {
@@ -431,11 +435,57 @@ void nodeConfigurator::loadParamsString(string value, unsigned int idx, unsigned
 }
 
 
+/*
+ * The settings are saved to a temporary file next to the config file, which
+ * then replaces it. After a power cut the config file is then either the old
+ * one or the new one, never part of one: the new file is on the card before
+ * the rename (fsync), the rename is atomic, and the directory is flushed so
+ * the rename itself is kept. A config file reached through a link is replaced
+ * where it is, so the link stays.
+ */
+static string realConfigPath(const string &configFile)
+{
+    char real[PATH_MAX];
+    if (realpath(configFile.c_str(), real) != nullptr) return string(real);
+    return configFile;
+}
+
+static string tempConfigPath(const string &configFile)
+{
+    return realConfigPath(configFile) + ".tmp";
+}
+
+/* Replace the config file by the temporary file. false if it could not. */
+static bool replaceConfigFile(const string &configFile)
+{
+    string target = realConfigPath(configFile);
+    string temp = target + ".tmp";
+    struct stat old;
+    int fd = open(temp.c_str(), O_RDONLY);
+    if (fd < 0) return false;
+    if (stat(target.c_str(), &old) == 0){
+        // keep the old file's permissions and, when we may, its owner
+        fchmod(fd, old.st_mode & 07777);
+        if (fchown(fd, old.st_uid, old.st_gid) != 0) { /* not root: the file stays ours */ }
+    }
+    bool synced = fsync(fd) == 0;
+    close(fd);
+    if (!synced || rename(temp.c_str(), target.c_str()) != 0) return false;
+    string::size_type slash = target.rfind('/');
+    string dir = slash == string::npos ? "." : (slash == 0 ? "/" : target.substr(0, slash));
+    fd = open(dir.c_str(), O_RDONLY | O_DIRECTORY);
+    if (fd >= 0){
+        fsync(fd);      // if this fails, the old file is what a power cut would leave: still whole
+        close(fd);
+    }
+    return true;
+}
+
 bool nodeConfigurator::saveConfig(){
     configLock lock(&m_mutex_config); // the settings are read and written by several threads
 
     std::map<string, string>::iterator it;
-    ofstream f (configFile, std::ios::trunc);
+    ofstream f (tempConfigPath(configFile), std::ios::trunc);
     stringstream ss;
 
     if (!f.is_open()){
@@ -468,6 +518,12 @@ bool nodeConfigurator::saveConfig(){
 
     }
     f.close();
+    if (!f || !replaceConfigFile(configFile)){
+        unlink(tempConfigPath(configFile).c_str());
+        if (logger != nullptr) logger->error("Error writing the config file.");
+        else std::cerr << "Error writing the config file." << std::endl;
+        return false;
+    }
     loadConfig();
     return true;
 
