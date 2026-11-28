@@ -1872,48 +1872,90 @@ bool nodeConfigurator::saveConfig()
         return ss.str();
     }
 
-    bool nodeConfigurator::setNewPair(string key, string value, bool quoted)
+    string nodeConfigurator::removeChar(string val, char c)
     {
-        configLock lock(&m_mutex_config); // the settings are read and written by several threads
-        string ss;
-        if (quoted)
-        {
-            ss = "\"" + value + "\"";
-        }
-        else
-            ss = value;
-
-        if (!existConfigEntry(key))
-        {
-            if (logger != nullptr)
-                logger->debug("[nodeConfigurator] Adding new pair %s %s quoted %d", key.c_str(), ss.c_str(), quoted);
-            else
-                std::cout << "[nodeConfigurator] Adding new pair " << key << " " << ss << " quoted " << quoted << std::endl;
-
-            std::pair<string, string> p;
-            p = std::make_pair(key, ss);
-            config.insert(p);
-        }
-        else
-        {
-            if (logger != nullptr)
-                logger->debug("[nodeConfigurator] Updating new pair %s %s quoted %d", key.c_str(), ss.c_str(), quoted);
-            else
-                std::cout << "[nodeConfigurator] Updating new pair " << key << " " << ss << " quoted " << quoted << std::endl;
-            config[key] = ss;
-        }
-        return saveConfig();
+        val.erase(std::remove(val.begin(), val.end(), c), val.end());
+        return val;
     }
 
-    bool nodeConfigurator::existConfigEntry(string key)
+    string nodeConfigurator::cleanString(string val)
     {
-        configLock lock(&m_mutex_config); // the settings are read and written by several threads
-        if (logger != nullptr)
-            logger->debug("[nodeConfigurator] Checking config key %s", key.c_str());
-        else
-            std::cout << "[nodeConfigurator] Checking config key " << key << std::endl;
-
-        if (config.find(key) == config.end())
-            return false;
-        return true;
+        string s;
+        s = removeChar(val, '"');
+        s = removeChar(s, ';');
+        s = removeChar(s, ' ');
+        return s;
     }
+
+    std::pair<string, string> nodeConfigurator::getpair(string val)
+    {
+        std::pair<string, string> ret;
+        string key;
+        string value;
+        string s;
+
+        s = cleanString(val);
+        // find '=' in the cleaned line, which is the one split below
+        size_t i = s.find('=');
+        if (i != string::npos && i > 0)
+        {
+            key = s.substr(0, i);
+            value = s.substr(i + 1, s.length());
+            ret = std::make_pair(key, value);
+            return ret;
+        }
+        return std::make_pair("0", "0");
+    }
+
+    bool nodeConfigurator::loadConfig()
+    {
+        ifstream myfile;
+        string line;
+        std::pair<string, string> p;
+
+        myfile.open(configFile, std::ios::in);
+        if (myfile.is_open())
+        {
+            config.clear();
+            while (getline(myfile, line))
+            {
+                p = getpair(line);
+                if ((std::get<0>(p)) != "0")
+                    config.insert(p);
+            }
+            else ss = value;
+
+            if (!existConfigEntry(key))
+            {
+                if (logger != nullptr)
+                    logger->debug("[nodeConfigurator] Adding new pair %s %s quoted %d", key.c_str(), ss.c_str(), quoted);
+                else
+                    std::cout << "[nodeConfigurator] Adding new pair " << key << " " << ss << " quoted " << quoted << std::endl;
+
+                std::pair<string, string> p;
+                p = std::make_pair(key, ss);
+                config.insert(p);
+            }
+            else
+            {
+                if (logger != nullptr)
+                    logger->debug("[nodeConfigurator] Updating new pair %s %s quoted %d", key.c_str(), ss.c_str(), quoted);
+                else
+                    std::cout << "[nodeConfigurator] Updating new pair " << key << " " << ss << " quoted " << quoted << std::endl;
+                config[key] = ss;
+            }
+            return saveConfig();
+        }
+
+        bool nodeConfigurator::existConfigEntry(string key)
+        {
+            configLock lock(&m_mutex_config); // the settings are read and written by several threads
+            if (logger != nullptr)
+                logger->debug("[nodeConfigurator] Checking config key %s", key.c_str());
+            else
+                std::cout << "[nodeConfigurator] Checking config key " << key << std::endl;
+
+            if (config.find(key) == config.end())
+                return false;
+            return true;
+        }
