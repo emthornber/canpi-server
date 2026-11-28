@@ -1128,7 +1128,7 @@ void canHandler::restart_module(SCRIPT_ACTIONS action)
     usleep(1000 * 1000); // 1s
     if (fork() == 0)
     {
-        logger->info("[canHandler] Restarting the module. [%s]", command.str());
+        logger->info("[canHandler] Restarting the module. [%s]", command.str().c_str());
         system(command.str().c_str());
         exit(0);
     }

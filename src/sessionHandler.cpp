@@ -1,5 +1,24 @@
 #include "sessionHandler.hpp"
 
+namespace
+{
+    /*
+     * Holds a mutex for as long as it exists, so the mutex is released however the
+     * block that made it is left, including by an exception.
+     */
+    class mutexLock
+    {
+    public:
+        explicit mutexLock(pthread_mutex_t *mutex) : mutex(mutex) { pthread_mutex_lock(mutex); }
+        ~mutexLock() { pthread_mutex_unlock(mutex); }
+        mutexLock(const mutexLock &) = delete;
+        mutexLock &operator=(const mutexLock &) = delete;
+
+    private:
+        pthread_mutex_t *mutex;
+    };
+}
+
 sessionHandler::sessionHandler(log4cpp::Category *logger, nodeConfigurator *config, canHandler *can)
 {
     // ctor
@@ -8,7 +27,6 @@ sessionHandler::sessionHandler(log4cpp::Category *logger, nodeConfigurator *conf
     this->can = can;
     sessionids = 0;
     pthread_mutex_init(&m_mutex_in, NULL);
-    pthread_cond_init(&m_condv_in, NULL);
 }
 
 sessionHandler::~sessionHandler()
@@ -16,14 +34,13 @@ sessionHandler::~sessionHandler()
     // dtor
     this->sessions.clear();
     pthread_mutex_destroy(&m_mutex_in);
-    pthread_cond_destroy(&m_condv_in);
 }
 
 edSession *sessionHandler::createEDSession(int client_id, string edname, long client_ip)
 {
     logger->debug("[sessionHandler] Allocate a new session for ed %s %d and ip %u", edname.c_str(), client_id, client_ip);
-    // make the new sessions thread safe
-    pthread_mutex_lock(&m_mutex_in);
+    // the session list is shared by the client threads and the keep alive thread
+    mutexLock lock(&m_mutex_in);
 
     sessionids++;
     edSession *ed = new edSession(logger, sessionids);
@@ -35,16 +52,14 @@ edSession *sessionHandler::createEDSession(int client_id, string edname, long cl
     ed->setOrphan(false);
     sessions.push_back(ed);
 
-    pthread_cond_signal(&m_condv_in);
-    pthread_mutex_unlock(&m_mutex_in);
-
     return ed;
 }
 
-bool sessionHandler::deleteEDSession(int sessionuid)
+bool sessionHandler::deleteEDSession(int sessionuid, int client_id)
 {
     logger->debug("[sessionHandler] Deleting session %d", sessionuid);
-    // make the new sessions thread safe
+    // the session list is shared by the client threads and the keep alive thread
+    mutexLock lock(&m_mutex_in);
 
     std::vector<edSession *>::iterator it = sessions.begin();
     while (it != sessions.end())
@@ -52,13 +67,14 @@ bool sessionHandler::deleteEDSession(int sessionuid)
         edSession *ed = *it;
         if (ed->getSessionUid() == sessionuid)
         {
-            pthread_mutex_lock(&m_mutex_in);
-
+            if (ed->getClientId() != client_id)
+            {
+                // taken over by another connection from the same address, which uses it now
+                logger->debug("[sessionHandler] Session %d now belongs to client %d, not deleted", sessionuid, ed->getClientId());
+                return false;
+            }
             delete (ed);
             sessions.erase(it);
-
-            pthread_cond_signal(&m_condv_in);
-            pthread_mutex_unlock(&m_mutex_in);
             return true;
         }
         it++;
@@ -71,6 +87,8 @@ unsigned int sessionHandler::retrieveAllEDSession(int client_id, string edname, 
 {
     unsigned int i = 0;
     edSession *ed;
+    // the session list is shared by the client threads and the keep alive thread
+    mutexLock lock(&m_mutex_in);
     logger->debug("[sessionHandler] Checking for all %d existing sessions for ed %s %d and ip %u", sessions.size(), edname.c_str(), client_id, client_ip);
     std::vector<edSession *>::iterator it = sessions.begin();
     while (it != sessions.end())
@@ -78,9 +96,11 @@ unsigned int sessionHandler::retrieveAllEDSession(int client_id, string edname, 
         ed = *it;
         // if (sessions[i]->getClientIP() == client_ip && sessions[i]->getEdName() == edname){
         logger->debug("[sessionHandler] Comparing ip %u and %u", ed->getClientIP(), client_ip);
-        if (ed->getClientIP() == client_ip)
+        // a session still waiting for a loco belongs to its own client, which deletes it
+        if (ed->getClientIP() == client_ip && ed->isSessionSet())
         {
             ed->setOrphan(false);
+            ed->setClientId(client_id); // taken over: this client owns it now
             logger->debug("[sessionHandler] Retrieved session for loco %d", ed->getLoco());
             edsessions->push_back(ed);
             i++;
@@ -97,8 +117,8 @@ bool sessionHandler::deleteAllEDSessions(int client_id)
 {
     bool found = false;
 
-    // make the new sessions thread safe
-    pthread_mutex_lock(&m_mutex_in);
+    // the session list is shared by the client threads and the keep alive thread
+    mutexLock lock(&m_mutex_in);
 
     std::vector<edSession *>::iterator it = sessions.begin();
     while (it != sessions.end())
@@ -106,17 +126,15 @@ bool sessionHandler::deleteAllEDSessions(int client_id)
         edSession *ed = *it;
         if (ed->getClientId() == client_id)
         {
-
-            pthread_mutex_lock(&m_mutex_in);
-
+            // erase returns the next session; the iterator erased can't be used again
+            it = sessions.erase(it);
             delete (ed);
-            sessions.erase(it);
             found = true;
-
-            pthread_cond_signal(&m_condv_in);
-            pthread_mutex_unlock(&m_mutex_in);
         }
-        it++;
+        else
+        {
+            it++;
+        }
     }
     return found;
 }
@@ -129,6 +147,8 @@ void sessionHandler::sendKeepAliveForOrphanSessions()
     edSession *ed;
     try
     {
+        // the session list is shared by the client threads and the keep alive thread
+        mutexLock lock(&m_mutex_in);
         // logger->info("[sessionHandler] Sessions in progress %d", sessions.size());
         if (sessions.size() > 0)
         {
@@ -156,8 +176,8 @@ void sessionHandler::sendKeepAliveForOrphanSessions()
                         sendCbusMessage(OPC_DSPD, ed->getSession(), ed->getDirection() * BS);
                         // release session
                         sendCbusMessage(OPC_KLOC, ed->getSession());
-                        sessions.erase(it);
-                        it++;
+                        // erase returns the next session; the iterator erased can't be used again
+                        it = sessions.erase(it);
                         continue;
                     }
 
